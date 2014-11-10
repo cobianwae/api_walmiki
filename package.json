@@ -1,0 +1,12 @@
+{
+  "name": "lookats",
+  "description": "Daily fashion application",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "bcrypt-nodejs": "0.0.3",
+    "body-parser": "1.9.x",
+    "express": "4.x",
+    "mongoose": "3.8.x"
+  }
+}
