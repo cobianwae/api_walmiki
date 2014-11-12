@@ -20,8 +20,8 @@ var userSchema = new mongoose.Schema({
 	interests : [String],
 	followers : [{ type:Schema.Types.ObjectId, ref:'User' }],
 	following : [{ type:Schema.Types.ObjectId, ref:'User'}],
-	is_active : { type:Boolean, default: true },
-	is_private : { type:Boolean, default: false },
+	isActive : { type:Boolean, default: true },
+	isPrivate : { type:Boolean, default: false },
 	createdOn: { type: Date, default: Date.now },
 	modifiedOn: { type: Date, default: Date.now },
 	modifiedOn: { type: Date, default: Date.now }
@@ -59,9 +59,9 @@ COMMENT SCHEMA
 ******************************************** */
 var commentSchema = new mongoose.Schema({
 	text : String,
-	vote_up : Number,
-	vote_down : Number,
-	user_id : { type:Schema.Types.ObjectId, ref:'User' },
+	voteUp : Number,
+	voteDown : Number,
+	author : { type:Schema.Types.ObjectId, ref:'User' },
 	createdOn: { type: Date, default: Date.now },
 	modifiedOn: Date,
 });
@@ -73,13 +73,13 @@ IMAGE SCHEMA
 ******************************************** */
 var imageSchema = new mongoose.Schema({
 	data : Buffer,
-	fileName : String,
-	imageType : String,
+	filename : String,
+	contentType : String,
 	createdOn: { type: Date, default: Date.now },
 	modifiedOn: Date
 });
 // Build the User model
-mongoose.model( 'Image', commentSchema );
+mongoose.model( 'Image', imageSchema );
 
 /* ********************************************
 POST SCHEMA
@@ -88,16 +88,16 @@ var postSchema = new mongoose.Schema({
 	title: String,
 	image: { data: Buffer, contentType: String },
 	liked :  [{ type:Schema.Types.ObjectId, ref:'User' }],
-	is_active : { type: Boolean, default:true },
-	brands :  [{ type:Schema.Types.ObjectId, ref:'Brand' }],
+	isActive : { type: Boolean, default:true },
+	brands :  [taggedBrandSchema],
 	comment : [commentSchema],
 	tags : [{type:Schema.Types.ObjectId, ref:'Tag'}],
-    tagedUsers : [{ type:Schema.Types.ObjectId, ref:'User' }],
-	createdBy : { type:Schema.Types.ObjectId, ref:'User' },
+    taggedUsers : [{ type:Schema.Types.ObjectId, ref:'User' }],
+	author : { type:Schema.Types.ObjectId, ref:'User' },
 	createdOn: { type: Date, default: Date.now },
 	modifiedOn: Date,
 	repost : {type:Schema.Types.ObjectId, ref:'Post'},
-	repostBy :[{type:Schema.Types.ObjectId, ref:'User'}]
+	reposted :[{type:Schema.Types.ObjectId, ref:'User'}]
 });
 // Build the Project model
 mongoose.model( 'Post', postSchema );
@@ -109,7 +109,7 @@ var tagSchema = new mongoose.Schema({
 	name : String
 });
 // Build the Project model
-mongoose.model( 'Tag', postSchema );
+mongoose.model( 'Tag', tagSchema );
 
 /* ********************************************
 BRAND SCHEMA
@@ -118,8 +118,18 @@ var brandSchema = new mongoose.Schema({
 	name : String
 });
 // Build the Project model
-mongoose.model( 'Brand', postSchema );
+mongoose.model( 'Brand', brandSchema );
 
+
+/* ********************************************
+TAGED BRAND SCHEMA
+******************************************** */
+var taggedBrandSchema = new mongoose.Schema({
+	brand : [{type:Schema.Types.ObjectId, ref:'Brand'}],
+	coordinate : [Number]
+});
+// Build the Project model
+// mongoose.model( 'TaggedBrand', postSchema );
 
 /* ********************************************
 Following Request SCHEMA
@@ -129,5 +139,5 @@ var followingRequestSchema = new mongoose.Schema({
 	follower : {type:Schema.Types.ObjectId, ref:'User'}
 });
 // Build the Project model
-mongoose.model( 'FollowingRequest', postSchema );
+mongoose.model( 'FollowingRequest', followingRequestSchema );
 
