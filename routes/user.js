@@ -1,14 +1,17 @@
 var mongoose = require( 'mongoose' );
 var User = mongoose.model( 'User' );
 var Post = mongoose.model( 'Post' );
+var Tag = mongoose.model( 'Tag' );
+var Image = mongoose.model( 'Image');
 var jwt = require('jsonwebtoken');
 
 exports.doCreate = function(req, res){
 	var newUser  = new User();
-	newUser.username = req.body.username;
-	newUser.email = req.body.email;
-	newUser.password = req.body.password;
-	newUser.fullname = req.body.fullname;
+	for(var prop in req.body){
+		if(req.body.hasOwnProperty(prop)){
+			newUser[prop] = req.body[prop];
+		}
+	}
 	newUser.save( function( err, user ){
 		if(err)
 			res.send(err);
@@ -29,38 +32,97 @@ exports.doUpdateInterests = function(req, res){
 				res.send(saveErr);
 
 			//return recommended user;
-			var recommendedUser = Post.aggregate([
-				{$match : { tags: { $in: user.interests } }},
-			  	{$unwind: "$tags"}, 
-			  	{$match : { tags: { $in: user.interests } }},
-				{$group : { 
-					_id : "$createdBy", 
-					liked :{ $sum : { $size : "$liked" } } 
-					}
-				}
-			],function(aggErr, result){
-				if (aggErr)
-					res.send(aggErr);
-				res.json(result);
-			});
+			doRecommendUser(req, res);
 		});
 	});
 }
 
-exports.doRecommendUser = function(req, res){
-	var recommendedUser = Post.aggregate([
-		{$match : { tags: { $in: user.interests } }},
-	  	{$unwind: "$tags"}, 
-	  	{$match : { tags: { $in: user.interests } }},
-		{$group : { 
-			_id : "$createdBy", 
-			liked :{ $sum : { $size : "$liked" } } 
+var doRecommendUser = function(req, res){
+	var page = req.body.page ? req.body.page : 1;
+	var limit = 10;
+	var skip = (page - 1) * limit;
+	var originResults = [];
+	var skipUsers = []
+	User.findById(req.user.id, function(err, user){
+		skipUsers.push(user._id);
+		Tag.find({name : {$in : user.interests}}, function(err, tags){
+			var tagIds = [];
+			for(var i in tags){
+				tagIds.push(tags[i]._id);
 			}
-		}
-	],function(aggErr, result){
-		if (aggErr)
-			res.send(aggErr);
-		res.json(result);
+			Post.aggregate([
+				{$match : { $and : [{tags: { $in: tagIds }},{author : {$nin : skipUsers}}]} },
+				{$group : { 
+					_id : "$author", 
+					liked :{ $sum : "$likedNumber" } 
+					}
+				},
+				{$sort : { liked : -1 } },
+				{$skip : skip },
+				{$limit : limit }
+			],function(aggErr, result){
+				if (aggErr)
+					res.send(aggErr);
+				User.populate(result,{
+					path : "_id",
+				}, function(err, result){
+					Image.populate(result, {
+						path : "_id.avatar"	
+					}, function(err, result){
+						for(var i in result){
+							originResults.push({
+								id : result[i]._id._id,
+								username : result[i]._id.username,
+								avatar : result[i]._id.avatar
+
+							});
+							skipUsers.push(result[i]._id._id);
+						}
+						if(result.length < limit){
+							limit = limit-result.length;
+							User
+							.find({ $and : [{ interests :{$in : user.interests}}, {_id : {$nin : skipUsers }} ] })
+							.populate('avatar')
+							.skip((page-1) * limit)
+							.limit(limit)
+							.exec(function(err, users){
+								if (err)
+									res.send(err);
+								for(var i in users){
+									originResults.push({
+										id : users[i]._id,
+										username : users[i].username,
+										avatar : users[i].avatar
+									});
+									skipUsers.push(users[i]._id);
+								}
+								if (users.length < limit){
+									limit = limit-users.length;
+									skip = (page-1) * limit;
+									User
+									.find({_id : {$nin : skipUsers}})
+									.populate('avatar')
+									.exec(function(err, randUsers){
+										for(var i in randUsers){
+											originResults.push({
+												id : randUsers[i]._id,
+												username : randUsers[i].username,
+												avatar : randUsers[i].avatar
+											});
+										}
+										res.send(originResults);
+									});
+								}else{
+									res.send(originResults);
+								}
+							});
+						}else{
+							res.send(originResults);
+						}
+					});
+				});
+			});
+		});
 	});
 }
 

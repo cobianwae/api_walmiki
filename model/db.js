@@ -14,6 +14,7 @@ var userSchema = new mongoose.Schema({
 	password: {type: String, required : true },
 	email: {type: String, unique:true, required : true},
 	fullname : {type:String, required : true},
+	phoneNumber : String,
 	avatarThumbnail : {type:Schema.Types.ObjectId, ref:'Image'},
 	avatar: {type:Schema.Types.ObjectId, ref:'Image'},
 	about : String,
