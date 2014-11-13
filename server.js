@@ -12,7 +12,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors());
 
-var port = process.env.PORT || 9090;
+// var port = process.env.PORT || 9090;
+var server_port = process.env.OPENSHIFT_NODEJS_PORT || 9090;
+var server_ip_address = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
+
 var router = express.Router();
 
 router.route('/authenticate').post(user.authenticate);
@@ -25,7 +28,9 @@ router.route('/user/follow').put(user.doFollow);
 router.route('/user/unfollow').put(user.doUnfollow);
 
 router.route('/post').post(post.doCreate);
+router.route('/post/mostliked').get(post.getMostLikedPosts);
 router.route('/post/like').put(post.doLike);
+router.route('/post/repost').post(post.doRepost);
 router.route('/image').post(post.doUploadImage);
 
 // router.route('/user/recommenduser').get(user.getReccommendUser);
@@ -34,5 +39,6 @@ router.route('/image').post(post.doUploadImage);
 
 app.use('/api', router);
 
-app.listen(port);
-console.log('Magic happens on port ' + port);
+app.listen(server_port, server_ip_address, function(){
+  console.log("Listening on " + server_ip_address + ", server_port " + server_port)
+});

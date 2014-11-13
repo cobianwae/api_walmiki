@@ -118,8 +118,8 @@ exports.getById = function(req, res){
 			{$match : { author : user._id }},
 			{$group : { 
 					_id : "$author", 
-					liked :{ $sum : { $size : "$liked" } },
-					reposted : { $sum: { $size : "$reposted"} },
+					liked :{ $sum : "$likedNumber" },
+					reposted : { $sum: "$repostedNumber" },
 					count : { $sum : 1 } 
 				}
 			}

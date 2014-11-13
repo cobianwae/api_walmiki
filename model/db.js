@@ -2,6 +2,7 @@ var mongoose = require( 'mongoose' ),
 bcrypt = require('bcrypt-nodejs'),
 Schema = mongoose.Schema,
 dbURI = 'mongodb://localhost/proficioDB';
+// dbURI = 'mongodb://walmiki:omongkosong6414@ds047720.mongolab.com:47720/lookatswalmiki';
 mongoose.connect(dbURI);
 
 // Connection events snipped out for brevity
@@ -85,19 +86,22 @@ mongoose.model( 'Image', imageSchema );
 POST SCHEMA
 ******************************************** */
 var postSchema = new mongoose.Schema({
-	title: String,
-	image: { data: Buffer, contentType: String },
+	title: { type: String, required : true },
+	image: { type: Schema.Types.ObjectId, required : true, ref:'Image' },
 	liked :  [{ type:Schema.Types.ObjectId, ref:'User' }],
+	likedNumber : { type: Number, default: 0},
 	isActive : { type: Boolean, default:true },
 	brands :  [taggedBrandSchema],
 	comment : [commentSchema],
+	commentNumber : { type: Number, default:0 },
 	tags : [{type:Schema.Types.ObjectId, ref:'Tag'}],
     taggedUsers : [{ type:Schema.Types.ObjectId, ref:'User' }],
-	author : { type:Schema.Types.ObjectId, ref:'User' },
+	author : { type:Schema.Types.ObjectId, ref:'User', required : true },
 	createdOn: { type: Date, default: Date.now },
 	modifiedOn: Date,
-	repost : {type:Schema.Types.ObjectId, ref:'Post'},
-	reposted :[{type:Schema.Types.ObjectId, ref:'User'}]
+	originalPost : {type:Schema.Types.ObjectId, ref:'Post'},
+	reposted :[{type:Schema.Types.ObjectId, ref:'User'}],
+	repostedNumber : {type:Number, default:0}
 });
 // Build the Project model
 mongoose.model( 'Post', postSchema );
