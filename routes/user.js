@@ -30,7 +30,6 @@ exports.doUpdateInterests = function(req, res){
 		user.save(function(saveErr, updatedUser){
 			if(saveErr)
 				res.send(saveErr);
-
 			//return recommended user;
 			doRecommendUser(req, res);
 		});
@@ -130,9 +129,11 @@ exports.doUpdate =  function(req, res){
 	User.findById(req.params.user_id, function(err, user){
 		if(err)
 			res.send(err);
-		user.firstName = req.body.firstName;
-		user.lastName = req.body.lastName;
-		user.avatar = req.body.avatar;
+		for(var prop in req.body){
+			if(req.body.hasOwnProperty(prop)){
+				user[prop] = req.body[prop];
+			}
+		}
 		user.save(function(saveErr, updatedUser){
 			if(saveErr)
 				res.send(saveErr);
