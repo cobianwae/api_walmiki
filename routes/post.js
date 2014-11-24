@@ -6,7 +6,8 @@ var multiparty = require('multiparty');
 var fs = require('fs');
 var mime = require('mime');
 var Image = mongoose.model( 'Image' );
-var  gm = require('gm').subClass({ imageMagick: true });
+var gm = require('gm');
+//var  gm = require('gm').subClass({ imageMagick: true });
 // var imageMagick = gm.subClass({ imageMagick: true });
 
 exports.doCreate = function(req, res){
@@ -66,11 +67,11 @@ exports.doUploadImage = function(req, res){
 			errors : []
 		};
 	form.parse(req, function(err, fields, files) {
-		
+    console.log(files);
 		for(var i in files.image){
 			var imagePath = files.image[i].path;
 			var image = new Image();
-			image.contentType = mime.lookup(imagePath); 
+			image.contentType = mime.lookup(imagePath);
 		    image.filename = files.image[i].originalFilename;
 			image.data = fs.readFileSync(imagePath);
 			gm(imagePath)
@@ -89,8 +90,8 @@ exports.doUploadImage = function(req, res){
 			    		res.send(results);
 		   	  });
 			});
-		   
-		    
+
+
 		}
 	});
 }
@@ -152,4 +153,11 @@ exports.getMostLikedPosts = function(req, res){
 	});
 }
 
-// exports.getLatestPosts = function
+
+exports.getLatestPosts = function(req, res){
+	Post.find({author:req.user.id})
+	.sort({createdOn : 1})
+	.exec(function(err, users){
+
+	});
+}

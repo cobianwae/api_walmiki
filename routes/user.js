@@ -17,7 +17,7 @@ exports.doCreate = function(req, res){
 			res.send(err);
 		res.json(user);
 	});
-}
+};
 
 exports.doUpdateInterests = function(req, res){
 	User.findById(req.user.id, function(err, user){
@@ -34,7 +34,19 @@ exports.doUpdateInterests = function(req, res){
 			doRecommendUser(req, res);
 		});
 	});
-}
+};
+
+exports.getUsers = function(req, res){
+  console.log(req.params.fullname);
+  var regex = new RegExp(req.params.fullname, 'i');
+  User.find({$and : [ {fullname : regex}, {_id : {$ne : req.user.id}} ]})
+  .select('_id fullname')
+  .exec(function(err, users){
+    if(err)
+      res.send(err);
+    res.send(users);
+  });
+};
 
 var doRecommendUser = function(req, res){
 	var page = req.body.page ? req.body.page : 1;
@@ -51,9 +63,9 @@ var doRecommendUser = function(req, res){
 			}
 			Post.aggregate([
 				{$match : { $and : [{tags: { $in: tagIds }},{author : {$nin : skipUsers}}]} },
-				{$group : { 
-					_id : "$author", 
-					liked :{ $sum : "$likedNumber" } 
+				{$group : {
+					_id : "$author",
+					liked :{ $sum : "$likedNumber" }
 					}
 				},
 				{$sort : { liked : -1 } },
@@ -66,7 +78,7 @@ var doRecommendUser = function(req, res){
 					path : "_id",
 				}, function(err, result){
 					Image.populate(result, {
-						path : "_id.avatar"	
+						path : "_id.avatar"
 					}, function(err, result){
 						for(var i in result){
 							originResults.push({
@@ -123,7 +135,7 @@ var doRecommendUser = function(req, res){
 			});
 		});
 	});
-}
+};
 
 exports.doUpdate =  function(req, res){
 	User.findById(req.params.user_id, function(err, user){
@@ -140,9 +152,10 @@ exports.doUpdate =  function(req, res){
 			res.json(updatedUser);
 		});
 	});
-}
+};
 
 exports.authenticate = function(req, res){
+	console.log('oi');
 	User.findOne({ username: req.body.username }, function (err, user) {
 	      if (err || !user) { res.send(401, 'Wrong user or password'); }
 		  user.verifyPassword(req.body.password, function(err, isMatch) {
@@ -156,7 +169,7 @@ exports.authenticate = function(req, res){
 	  		res.json({ token: token });
 	      });
 	});
-}
+};
 
 exports.getById = function(req, res){
 	User.findOne({_id : req.user.id})
@@ -179,11 +192,11 @@ exports.getById = function(req, res){
 		userViewModel.following = user.following.length;
 		var userPost = Post.aggregate([
 			{$match : { author : user._id }},
-			{$group : { 
-					_id : "$author", 
+			{$group : {
+					_id : "$author",
 					liked :{ $sum : "$likedNumber" },
 					reposted : { $sum: "$repostedNumber" },
-					count : { $sum : 1 } 
+					count : { $sum : 1 }
 				}
 			}
 		],function(postErr, postStats){
@@ -211,8 +224,23 @@ exports.getById = function(req, res){
 				res.send(userViewModel);
 			});
 		});
-	});	
-}
+	});
+};
+
+exports.getTimeline = function(req, res){
+  User.findById(req.user.id, function(err, user){
+    if (err)
+      res.send(err);
+    Post.find({author : {$in : user.following } })
+    .populate('avatar')
+    .exec(function(err, posts){
+      if (err)
+        res.send(err);
+      Image.populate(posts,{
+      });
+    });
+  });
+};
 
 exports.doFollow = function(req, res){
 	var followingId = req.body.userId;
@@ -242,7 +270,7 @@ exports.doFollow = function(req, res){
 		});
 
 	});
-}
+};
 
 exports.doUnfollow = function(req, res){
 	User.findById(req.user.id, function(err, user){
@@ -277,4 +305,4 @@ exports.doUnfollow = function(req, res){
 		});
 
 	});
-}
+};

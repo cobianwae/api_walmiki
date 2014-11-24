@@ -96,7 +96,7 @@ var postSchema = new mongoose.Schema({
 	comment : [commentSchema],
 	commentNumber : { type: Number, default:0 },
 	tags : [{type:Schema.Types.ObjectId, ref:'Tag'}],
-    taggedUsers : [{ type:Schema.Types.ObjectId, ref:'User' }],
+  taggedUsers : [{ type:Schema.Types.ObjectId, ref:'User' }],
 	author : { type:Schema.Types.ObjectId, ref:'User', required : true },
 	createdOn: { type: Date, default: Date.now },
 	modifiedOn: Date,
