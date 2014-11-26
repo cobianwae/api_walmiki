@@ -138,7 +138,7 @@ var doRecommendUser = function(req, res){
 };
 
 exports.doUpdate =  function(req, res){
-	User.findById(req.params.user_id, function(err, user){
+	User.findById(req.user.id, function(err, user){
 		if(err)
 			res.send(err);
 		for(var prop in req.body){
@@ -231,13 +231,24 @@ exports.getTimeline = function(req, res){
   User.findById(req.user.id, function(err, user){
     if (err)
       res.send(err);
-    Post.find({author : {$in : user.following } })
-    .populate('avatar')
+    //Post.find({author : {$in : user.following } })
+    Post.find({})
+    .populate('author', '_id username avatar fullname')
     .exec(function(err, posts){
-      if (err)
-        res.send(err);
-      Image.populate(posts,{
-      });
+		if (err)
+			res.send(err);
+		//console.log(posts);
+		res.send(posts);
+		var callback = function(err, posts){
+			/*Image.populate(posts, { path : 'author.avatar' }, function(err, posts){
+				res.send(posts);
+			});*/
+			//res.send(posts);
+		};
+
+      //Image.populate(posts, {path: 'image'}, callback);
+
+
     });
   });
 };

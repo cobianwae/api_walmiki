@@ -5,10 +5,11 @@ var bodyParser = require('body-parser');
 var db 	= require('./model/db');
 var user = require('./routes/user');
 var post = require('./routes/post');
+var image = require('./routes/image');
 var tag = require('./routes/tag');
 var cors = require('cors');
 
-app.use(expressJwt({secret : 'lookats-05112014162539'}).unless({path:['/api/authenticate', '/api/register']}));
+app.use('/api', expressJwt({secret : 'lookats-05112014162539'}).unless({path:['/api/authenticate', '/api/register', /\/api\/image\/\w*/ig]}));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors());
@@ -35,6 +36,7 @@ router.route('/post/mostliked').get(post.getMostLikedPosts);
 router.route('/post/like').put(post.doLike);
 router.route('/post/repost').post(post.doRepost);
 router.route('/image').post(post.doUploadImage);
+router.route('/image/:id').get(image.getImageById);
 
 router.route('/tags/:name').get(tag.getTags);
 
