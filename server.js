@@ -24,13 +24,14 @@ router.route('/authenticate').post(user.authenticate);
 router.route('/register').post(user.doCreate);
 
 router.route('/user').put(user.doUpdate);
-router.route('/user').get(user.getById);
+router.route('/profile/:id').get(user.getById);
 router.route('/users/:fullname').get(user.getUsers);
 router.route('/user/interests').put(user.doUpdateInterests);
 router.route('/user/follow').put(user.doFollow);
 router.route('/user/unfollow').put(user.doUnfollow);
 router.route('/user/timeline').get(user.getTimeline);
 
+router.route('/posts/:id').get(post.getRecentPosts);
 router.route('/post').post(post.doCreate);
 router.route('/post/mostliked').get(post.getMostLikedPosts);
 router.route('/post/like').put(post.doLike);

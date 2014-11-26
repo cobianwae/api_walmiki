@@ -158,11 +158,18 @@ exports.getMostLikedPosts = function(req, res){
 	});
 }
 
-
-exports.getLatestPosts = function(req, res){
-	Post.find({author:req.user.id})
+exports.getRecentPosts = function(req, res){
+	Post.find({author:req.params.id})
+	.populate('author', '_id username avatar')
 	.sort({createdOn : 1})
-	.exec(function(err, users){
+	.exec(function(err, posts) {
+		if (err) {
+			res.send(err);
+		}
 
+		res.send(posts);
+		/*Image.populate(posts, { path: 'author.avatar' }, function(err, posts) {
+			Image.populate(posts, { path: ''			});
+		});*/
 	});
 }
