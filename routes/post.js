@@ -6,15 +6,16 @@ var multiparty = require('multiparty');
 var fs = require('fs');
 var mime = require('mime');
 var Image = mongoose.model( 'Image' );
-var gm = require('gm');
-//var  gm = require('gm').subClass({ imageMagick: true });
+//var gm = require('gm');
+var gm = require('gm').subClass({ imageMagick: true });
 // var imageMagick = gm.subClass({ imageMagick: true });
 
-exports.doCreate = function(req, res){
+exports.doCreate = function(req, res){	
 	var post = new Post();
 	post.author = req.user.id;
 	post.title = req.body.title;
-	post.image = mongoose.Types.ObjectId(req.body.image);
+	var imageId = req.body.image;
+	post.image = mongoose.Types.ObjectId(imageId);
 	for (var i in req.body.brands){
 		if ( mongoose.Types.ObjectId.isValid(req.body.brands[i].brand) ){
 			post.brands.push({
@@ -78,16 +79,20 @@ exports.doUploadImage = function(req, res){
 			.resize(1000)
 			.quality(50)
 			.toBuffer('jpg', function (err, buffer) {
+				console.log(err);
 			  if (err)
 			  	res.send(err);
 			  image.data = buffer;
 			  image.save(function (imageError, image){
 			    	if(imageError)
-			    		results.errors.push({ filename :files.image[i].originalFilename });
+			    		res.send(imageError);
+			    		//results.errors.push({ filename :files.image[i].originalFilename });
 			    	else
-			    		results.success.push({ id : image._id, data : image.data, filename : image.filename, contentType:image.contentType });
-			    	if(i == files.image.length -1 )
-			    		res.send(results);
+			    		res.send(image._id);
+			    		//results.success.push({ id : image._id, data : image.data, filename : image.filename, contentType:image.contentType });
+
+			    	/*if(i == files.image.length -1 )
+			    		res.send(results);*/
 		   	  });
 			});
 
@@ -153,11 +158,18 @@ exports.getMostLikedPosts = function(req, res){
 	});
 }
 
-
-exports.getLatestPosts = function(req, res){
-	Post.find({author:req.user.id})
+exports.getRecentPosts = function(req, res){
+	Post.find({author:req.params.id})
+	.populate('author', '_id username avatar')
 	.sort({createdOn : 1})
-	.exec(function(err, users){
+	.exec(function(err, posts) {
+		if (err) {
+			res.send(err);
+		}
 
+		res.send(posts);
+		/*Image.populate(posts, { path: 'author.avatar' }, function(err, posts) {
+			Image.populate(posts, { path: ''			});
+		});*/
 	});
 }

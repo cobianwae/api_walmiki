@@ -4,6 +4,7 @@ var Post = mongoose.model( 'Post' );
 var Tag = mongoose.model( 'Tag' );
 var Image = mongoose.model( 'Image');
 var jwt = require('jsonwebtoken');
+var defaultImage = '547463f514f028c416e8d4f7';
 
 exports.doCreate = function(req, res){
 	var newUser  = new User();
@@ -36,8 +37,7 @@ exports.doUpdateInterests = function(req, res){
 	});
 };
 
-exports.getUsers = function(req, res){
-  console.log(req.params.fullname);
+exports.getUsers = function(req, res) {
   var regex = new RegExp(req.params.fullname, 'i');
   User.find({$and : [ {fullname : regex}, {_id : {$ne : req.user.id}} ]})
   .select('_id fullname')
@@ -138,7 +138,7 @@ var doRecommendUser = function(req, res){
 };
 
 exports.doUpdate =  function(req, res){
-	User.findById(req.params.user_id, function(err, user){
+	User.findById(req.user.id, function(err, user){
 		if(err)
 			res.send(err);
 		for(var prop in req.body){
@@ -154,8 +154,7 @@ exports.doUpdate =  function(req, res){
 	});
 };
 
-exports.authenticate = function(req, res){
-	console.log('oi');
+exports.authenticate = function(req, res) {
 	User.findOne({ username: req.body.username }, function (err, user) {
 	      if (err || !user) { res.send(401, 'Wrong user or password'); }
 		  user.verifyPassword(req.body.password, function(err, isMatch) {
@@ -172,24 +171,30 @@ exports.authenticate = function(req, res){
 };
 
 exports.getById = function(req, res){
-	User.findOne({_id : req.user.id})
+	User.findOne({_id : req.params.id})
 	.populate('avatar')
 	.exec(function (err, user) {
 		if(err)
 			res.send(err);
-		var userViewModel = {};
-		if(user.avatar != undefined){
-			userViewModel.picture = {
+		var userViewModel = {};		
+		userViewModel.avatar = (user.avatar === undefined) ? { _id : defaultImage } : user.avatar;		
+			/*userViewModel.picture = {
 				data : user.avatar.data,
 				contentType : user.avatar.contentType
-			}
-		}
+			}*/
+		//}
+		userViewModel.id = user.id;
 		userViewModel.username = user.username;
 		userViewModel.fullname = user.fullname;
 		userViewModel.description = user.description;
 		userViewModel.website = user.website;
 		userViewModel.followers = user.followers.length;
 		userViewModel.following = user.following.length;
+
+		//note : at the moment the request here is should be login first		
+		userViewModel.isSelf = req.params.id === req.user.id;		
+		userViewModel.areYouFollowHim = user.followers.indexOf(req.user.id) != -1;
+		userViewModel.isYourFollower = user.following.indexOf(req.user.id) != -1;
 		var userPost = Post.aggregate([
 			{$match : { author : user._id }},
 			{$group : {
@@ -231,13 +236,18 @@ exports.getTimeline = function(req, res){
   User.findById(req.user.id, function(err, user){
     if (err)
       res.send(err);
-    Post.find({author : {$in : user.following } })
-    .populate('avatar')
+
+	var following = [];
+	following = user.following;
+	following.push(req.user.id);
+
+    Post.find({author : { $in : following } })
+    .populate('author', '_id username avatar fullname')
     .exec(function(err, posts){
-      if (err)
-        res.send(err);
-      Image.populate(posts,{
-      });
+		if (err)
+			res.send(err);
+
+		res.send(posts);		
     });
   });
 };
