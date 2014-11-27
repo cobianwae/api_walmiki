@@ -6,6 +6,7 @@ var db 	= require('./model/db');
 var user = require('./routes/user');
 var post = require('./routes/post');
 var tag = require('./routes/tag');
+var brand = require('./routes/brand');
 var cors = require('cors');
 
 app.use(expressJwt({secret : 'lookats-05112014162539'}).unless({path:['/api/authenticate', '/api/register']}));
@@ -37,6 +38,7 @@ router.route('/post/repost').post(post.doRepost);
 router.route('/image').post(post.doUploadImage);
 
 router.route('/tags/:name').get(tag.getTags);
+router.route('/brands/:name').get(brand.getBrands);
 
 // router.route('/user/recommenduser').get(user.getReccommendUser);
 // router.route('/user/follow').put(user.doFollow);
