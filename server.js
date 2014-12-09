@@ -43,6 +43,9 @@ router.route('/image/:id').get(image.getImageById);
 
 router.route('/tags/:name').get(tag.getTags);
 
+router.route('/post/comment/').post(post.addComment);
+router.route('/post/comments/:postId').post(post.getCommentsByPostId);
+
 // router.route('/user/recommenduser').get(user.getReccommendUser);
 // router.route('/user/follow').put(user.doFollow);
 // router.route('/user/unfollow').put(user.doUnfollow);

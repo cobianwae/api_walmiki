@@ -6,6 +6,7 @@ var multiparty = require('multiparty');
 var fs = require('fs');
 var mime = require('mime');
 var Image = mongoose.model( 'Image' );
+var Comment = mongoose.model( 'Comment' );
 //var gm = require('gm');
 var gm = require('gm').subClass({ imageMagick: true });
 // var imageMagick = gm.subClass({ imageMagick: true });
@@ -188,4 +189,40 @@ exports.getRecentPosts = function(req, res){
 			Image.populate(posts, { path: ''			});
 		});*/
 	});
+}
+
+exports.addComment = function(req, res) {	
+	Post.findById(req.body.postId)
+	.exec(function(err, post) {
+		if (err) {
+			res.send(err);
+		}
+
+		var comment = new Comment();
+		comment.text = req.body.commentText;
+		comment.author = req.user.id;
+		post.comment.push(comment);
+		
+		post.save(function(saveErr, updatedPost) {
+			if(saveErr) {
+				res.send(saveErr);
+			}
+			
+			res.send({success: true});
+		})
+	});
+}
+
+exports.getCommentsByPostId = function(req, res) {
+	Post.findById(req.params.postId)
+	.populate('comment.author')	
+	.exec(function(err, posts) {
+		if (err) {
+			res.send(err);
+		}
+
+		res.send(posts.comment);
+
+	});
+
 }
