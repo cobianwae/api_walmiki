@@ -170,8 +170,16 @@ exports.authenticate = function(req, res) {
 	});
 };
 
-exports.getById = function(req, res){
-	User.findOne({_id : req.params.id})
+exports.getById = function(req, res){	
+	getUser(req, res, req.params.id);
+};
+
+exports.get = function(req, res) {
+	getUser(req, res, req.user.id);
+};
+
+var getUser = function(req, res, id) {
+	User.findOne({_id : id})
 	.populate('avatar')
 	.exec(function (err, user) {
 		if(err)
@@ -230,7 +238,7 @@ exports.getById = function(req, res){
 			});
 		});
 	});
-};
+}
 
 exports.getTimeline = function(req, res){
   User.findById(req.user.id, function(err, user){
