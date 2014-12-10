@@ -40,5 +40,3 @@ app.use('/api', router);
 app.listen(serverPort, serverIPAddress, function(){
   console.log("Listening on " + serverIPAddress + ", server_port " + serverPort);
 });
-
-

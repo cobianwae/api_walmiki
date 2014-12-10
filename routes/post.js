@@ -61,5 +61,3 @@ exports.doCreate = function(req, res){
     });
   });
 };
-
-
