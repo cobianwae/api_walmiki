@@ -1,0 +1,2 @@
+describe('Image API', function(){
+});

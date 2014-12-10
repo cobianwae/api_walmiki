@@ -1,54 +1,44 @@
-var express    = require('express');
-var app        = express();
-var expressJwt = require('express-jwt');
-var bodyParser = require('body-parser');
+var express = require('express');
+var app = express();
 var db 	= require('./model/db');
+var bodyParser = require('body-parser');
 var user = require('./routes/user');
 var post = require('./routes/post');
 var image = require('./routes/image');
-var tag = require('./routes/tag');
-var brand = require('./routes/brand');
 var cors = require('cors');
+var expressJwt = require('express-jwt');
+var allows = require('./utils/express-allows/index.js');
 
-app.use('/api', expressJwt({secret : 'lookats-05112014162539'}).unless({path:['/api/authenticate', '/api/register', /\/api\/image\/\w*/ig]}));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors());
+app.use('/api', allows(expressJwt({secret : 'lookats-05112014162539'}),[
+  {path : '/authenticate', method:'post'},
+  {path : '/users', method:'post'},
+  {path : /\/images\/\w+/gi, method:'get'},
+]));
 
-// var port = process.env.PORT || 9090;
-var server_port = process.env.OPENSHIFT_NODEJS_PORT || 9090;
-var server_ip_address = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
+var serverPort = process.env.OPENSHIFT_NODEJS_PORT || 9090;
+var serverIPAddress = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
 
 var router = express.Router();
-
 router.route('/authenticate').post(user.authenticate);
-router.route('/register').post(user.doCreate);
+router.route('/users').post(user.doCreate);
+router.route('/users').put(user.doUpdate);
+router.route('/users/:id').get(user.getById);
+//router.route('/users').get(user.getUsers);
 
-router.route('/user').put(user.doUpdate);
-router.route('/profile/:id').get(user.getById);
-router.route('/users/:fullname').get(user.getUsers);
-router.route('/user/interests').put(user.doUpdateInterests);
-router.route('/user/follow').put(user.doFollow);
-router.route('/user/unfollow').put(user.doUnfollow);
-router.route('/user/timeline').get(user.getTimeline);
+router.route('/posts').post(post.doCreate);
+//router.route('/posts').put(post.doUpdate);
+//router.route('/posts/:id').get(post.getById);
+//router.route('/posts').get(post.getPosts);
 
-router.route('/posts/:id').get(post.getRecentPosts);
-router.route('/post').post(post.doCreate);
-router.route('/post/mostliked').get(post.getMostLikedPosts);
-router.route('/post/like').put(post.doLike);
-router.route('/post/repost').post(post.doRepost);
-router.route('/image').post(post.doUploadImage);
-router.route('/image/:id').get(image.getImageById);
-
-router.route('/tags/:name').get(tag.getTags);
-router.route('/brands/:name').get(brand.getBrands);
-
-// router.route('/user/recommenduser').get(user.getReccommendUser);
-// router.route('/user/follow').put(user.doFollow);
-// router.route('/user/unfollow').put(user.doUnfollow);
+router.route('/images').post(image.doCreate);
+router.route('/images/:id').get(image.getById);
 
 app.use('/api', router);
-
-app.listen(server_port, server_ip_address, function(){
-  console.log("Listening on " + server_ip_address + ", server_port " + server_port)
+app.listen(serverPort, serverIPAddress, function(){
+  console.log("Listening on " + serverIPAddress + ", server_port " + serverPort);
 });
+
+

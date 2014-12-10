@@ -1,11 +1,15 @@
 var mongoose = require( 'mongoose' ),
 bcrypt = require('bcrypt-nodejs'),
 Schema = mongoose.Schema,
-dbURI = 'mongodb://localhost/proficioDB';
-// dbURI = 'mongodb://walmiki:omongkosong6414@ds047720.mongolab.com:47720/lookatswalmiki';
+dbName = 'lookats',
+dbURI = 'mongodb://localhost/' + dbName;
+
+if (process.env.OPENSHIFT_MONGODB_DB_URL){
+  dbURI = process.env.OPENSHIFT_MONGODB_DB_URL + dbName;
+  //dbURI = 'mongodb://walmiki:omongkosong6414@ds047720.mongolab.com:47720/lookatswalmiki';
+}
 mongoose.connect(dbURI);
 
-// Connection events snipped out for brevity
 /* ********************************************
 USER SCHEMA
 ******************************************** */
@@ -34,17 +38,11 @@ userSchema.methods.verifyPassword = function(password, cb) {
     cb(null, isMatch);
   });
 };
-// Execute before each user.save() call
 userSchema.pre('save', function(callback) {
   var user = this;
-
-  // Break out if the password hasn't changed
   if (!user.isModified('password')) return callback();
-
-  // Password changed so we need to hash it
   bcrypt.genSalt(5, function(err, salt) {
     if (err) return callback(err);
-
     bcrypt.hash(user.password, salt, null, function(err, hash) {
       if (err) return callback(err);
       user.password = hash;
@@ -52,8 +50,6 @@ userSchema.pre('save', function(callback) {
     });
   });
 });
-
-// Build the User model
 mongoose.model( 'User', userSchema );
 
 /* ********************************************
@@ -67,7 +63,6 @@ var commentSchema = new mongoose.Schema({
 	createdOn: { type: Date, default: Date.now },
 	modifiedOn: Date,
 });
-// Build the User model
 mongoose.model( 'Comment', commentSchema );
 
 /* ********************************************
@@ -80,7 +75,6 @@ var imageSchema = new mongoose.Schema({
 	createdOn: { type: Date, default: Date.now },
 	modifiedOn: Date
 });
-// Build the User model
 mongoose.model( 'Image', imageSchema );
 
 /* ********************************************
@@ -104,7 +98,6 @@ var postSchema = new mongoose.Schema({
 	reposted :[{type:Schema.Types.ObjectId, ref:'User'}],
 	repostedNumber : {type:Number, default:0}
 });
-// Build the Project model
 mongoose.model( 'Post', postSchema );
 
 /* ********************************************
@@ -113,7 +106,6 @@ CATEGORY SCHEMA
 var tagSchema = new mongoose.Schema({
 	name : String
 });
-// Build the Project model
 mongoose.model( 'Tag', tagSchema );
 
 /* ********************************************
@@ -122,9 +114,7 @@ BRAND SCHEMA
 var brandSchema = new mongoose.Schema({
 	name : String
 });
-// Build the Project model
 mongoose.model( 'Brand', brandSchema );
-
 
 /* ********************************************
 TAGED BRAND SCHEMA
@@ -133,8 +123,6 @@ var taggedBrandSchema = new mongoose.Schema({
 	brand : [{type:Schema.Types.ObjectId, ref:'Brand'}],
 	coordinate : [Number]
 });
-// Build the Project model
-// mongoose.model( 'TaggedBrand', postSchema );
 
 /* ********************************************
 Following Request SCHEMA
@@ -143,6 +131,4 @@ var followingRequestSchema = new mongoose.Schema({
 	following : {type:Schema.Types.ObjectId, ref:'User'},
 	follower : {type:Schema.Types.ObjectId, ref:'User'}
 });
-// Build the Project model
 mongoose.model( 'FollowingRequest', followingRequestSchema );
-
