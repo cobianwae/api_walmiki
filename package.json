@@ -14,8 +14,10 @@
     "express-jwt": "^0.5.1",
     "gm": "^1.17.0",
     "jsonwebtoken": "^1.2.0",
+    "mime": "^1.2.11",
     "mocha": "^2.0.1",
     "multiparty": "^4.1.0",
+    "q": "^1.1.2",
     "should": "^4.3.1",
     "supertest": "^0.15.0"
   },

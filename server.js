@@ -26,11 +26,11 @@ router.route('/authenticate').post(user.authenticate);
 router.route('/users').post(user.doCreate);
 router.route('/users').put(user.doUpdate);
 router.route('/users/:id').get(user.getById);
-//router.route('/users').get(user.getUsers);
+router.route('/users').get(user.getUsers);
 
 router.route('/posts').post(post.doCreate);
 //router.route('/posts').put(post.doUpdate);
-//router.route('/posts/:id').get(post.getById);
+router.route('/posts/:id').get(post.getById);
 //router.route('/posts').get(post.getPosts);
 
 router.route('/images').post(image.doCreate);

@@ -157,4 +157,40 @@ describe('User API', function(){
        });
     });
   });
+  describe('GET /users', function(){
+    beforeEach(function(done){
+      var user1 = {
+        username : 'cobianwae',
+        email : 'cobian.wae@gmail.com',
+        fullname : 'Cobian Wae',
+        password : 'hagemaru6414'
+      };
+      var user2 = {
+        username : 'cobiandev',
+        email : 'cobian.dev@gmail.com',
+        fullname : 'Cobian Dev',
+        password : 'hagemaru6414'
+      }
+      var users = [];
+      users.push(user1);
+      users.push(user2);
+      var User = mongoose.model('User');
+      User.create(users, function(err, users){
+        done();
+      });
+    });
+    it ('should return the list of users excluding her/himself', function(done){
+      getUserToken({username:'cobianwae', password:'hagemaru6414'})
+      .then(function(token){
+        request.get('/users')
+        .set('Authorization', 'Bearer ' + token)
+        .expect(200)
+        .end(function(err, res){
+          console.log(res.body);
+          res.body.length.should.equal(1);
+          done();
+        });
+      });
+    });
+  });
 });

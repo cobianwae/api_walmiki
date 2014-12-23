@@ -115,3 +115,18 @@ exports.doUpdate =  function(req, res){
     });
   });
 };
+
+exports.getUsers = function(req, res){
+  var queryParam = {_id : {$ne : req.user.id}};
+  if (req.query.fullname){
+      var regex = new RegExp(req.query.fullname, 'i');
+      queryParam = {$and : [ {fullname : regex}, {_id : {$ne : req.user.id}} ]};
+  }
+  User.find(queryParam)
+  .select('_id fullname avatar username')
+  .exec(function(err, users){
+    if(err)
+      res.send(err);
+    res.send(users);
+  });
+};
