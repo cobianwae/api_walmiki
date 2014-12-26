@@ -1,13 +1,11 @@
 var mongoose = require('mongoose');
 var User = mongoose.model('User');
 
-exports.doUpdate = function(req, res){
-  console.log(req.body.interests);
-  console.log(req.body);
-  console.log(req.headers);
+exports.doUpdate = function(req, res){  
   User.findById(req.user.id, function(err, user){
     if(err)
       res.send(err);
+    
     user.interests = [];
     
     for(var i in req.body.interests) {
