@@ -16,10 +16,12 @@
     "jsonwebtoken": "^1.2.0",
     "mocha": "^2.0.1",
     "multiparty": "^4.1.0",
+    "q": "^1.1.2",
     "should": "^4.3.1",
     "supertest": "^0.15.0"
   },
   "scripts": {
-    "test": "mocha test"
+    "test": "NODE_ENV=test mocha test",
+    "testserver": "NODE_ENV=test supervisor server.js"
   }
 }

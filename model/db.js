@@ -1,7 +1,7 @@
 var mongoose = require( 'mongoose' ),
 bcrypt = require('bcrypt-nodejs'),
 Schema = mongoose.Schema,
-dbName = 'lookats',
+dbName = process.env.NODE_ENV == 'test' ? 'lookatsTest' : 'lookats',
 dbURI = 'mongodb://localhost/' + dbName;
 
 if (process.env.OPENSHIFT_MONGODB_DB_URL){
@@ -14,9 +14,9 @@ mongoose.connect(dbURI);
 USER SCHEMA
 ******************************************** */
 var userSchema = new mongoose.Schema({
+  email: {type: String, unique:true, required : true},
 	username: {type: String, unique:true, required : true},
 	password: {type: String, required : true },
-	email: {type: String, unique:true, required : true},
 	fullname : {type:String, required : true},
 	phoneNumber : String,
 	avatarThumbnail : {type:Schema.Types.ObjectId, ref:'Image'},

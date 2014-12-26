@@ -12,6 +12,8 @@ exports.doCreate = function(req, res, next){
 			errors : []
 		};
 	form.parse(req, function(err, fields, files) {
+    if(!files || !files.image)
+      return res.status(403).send('Bad Request');
 		for(var i in files.image){
 			var imagePath = files.image[i].path;
 			var image = new Image();
@@ -26,14 +28,12 @@ exports.doCreate = function(req, res, next){
 			  image.data = buffer;
 			  image.save(function (imageError, image){
 			    	if(imageError)
-			    		return next(imageError);
-			    		//results.errors.push({ filename :files.image[i].originalFilename });
+			    		results.errors.push({ filename :files.image[i].originalFilename });
 			    	else
-			    		return res.send(image._id);
-			    		//results.success.push({ id : image._id, data : image.data, filename : image.filename, contentType:image.contentType });
+			    		results.success.push({ id : image._id, filename : image.filename });
 
-			    	/*if(i == files.image.length -1 )
-			    		res.send(results);*/
+			    	if(i == files.image.length -1 )
+			    		res.send(results);
 		   	  });
 			});
 		}

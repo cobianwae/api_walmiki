@@ -80,18 +80,18 @@ exports.getById = function(req, res, next){
 
 exports.doCreate = function(req, res, next){
   var newUser  = new User();
-  for(var prop in req.body){
-    if(req.body.hasOwnProperty(prop)){
-      newUser[prop] = req.body[prop];
-    }
-  }
+  newUser.email = req.body.email;
+  newUser.username = req.body.username;
+  newUser.password = req.body.password;
+  newUser.fullname = req.body.fullname;
+  newUser.phoneNumber = req.body.phoneNumber;
   newUser.save( function( err, user ){
     if(err){
       if (err.code == 11000){
         var regex = /\$((\w+))_/ig;
         var field = err.err.match(regex)[0]
         field = field.substring(1, field.length-1);
-        return res.status(409).send({success:false, message:field + 'is already registered', field: field});
+        return res.status(409).send({success:false, message:field + ' is already registered', field: field});
       }
       return next(err);
     }
@@ -113,5 +113,20 @@ exports.doUpdate =  function(req, res){
         res.send(saveErr);
       res.json(updatedUser);
     });
+  });
+};
+
+exports.getUsers = function(req, res){
+  var queryParam = {_id : {$ne : req.user.id}};
+  if (req.query.fullname){
+      var regex = new RegExp(req.query.fullname, 'i');
+      queryParam = {$and : [ {fullname : regex}, {_id : {$ne : req.user.id}} ]};
+  }
+  User.find(queryParam)
+  .select('_id fullname avatar username')
+  .exec(function(err, users){
+    if(err)
+      res.send(err);
+    res.send(users);
   });
 };
