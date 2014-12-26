@@ -5,6 +5,7 @@ var bodyParser = require('body-parser');
 var user = require('./routes/user');
 var post = require('./routes/post');
 var image = require('./routes/image');
+var interest = require('./routes/interest');
 var cors = require('cors');
 var expressJwt = require('express-jwt');
 var allows = require('./utils/express-allows/index.js');
@@ -36,6 +37,8 @@ app.use('/api', allows(expressJwt({secret : 'lookats-05112014162539'}),[
 
   router.route('/images').post(image.doCreate);
   router.route('/images/:id').get(image.getById);
+
+  router.route('/interests').put(interest.doUpdate);
 
   app.use('/api', router);
   app.listen(serverPort, serverIPAddress, function(){
