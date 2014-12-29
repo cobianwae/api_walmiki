@@ -120,5 +120,5 @@ exports.getById = function(req, res, next){
     if(!post)
       return res.status(404).send('No page found');
     res.send(post);
-  });
+  }).populate('comment.author');
 };
