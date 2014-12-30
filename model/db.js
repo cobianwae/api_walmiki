@@ -21,6 +21,7 @@ var userSchema = new mongoose.Schema({
 	phoneNumber : String,
 	avatarThumbnail : {type:Schema.Types.ObjectId, ref:'Image'},
 	avatar: {type:Schema.Types.ObjectId, ref:'Image'},
+  cover: {type:Schema.Types.ObjectId, ref:'Image'},
 	about : String,
 	location : String,
 	interests : [String],
