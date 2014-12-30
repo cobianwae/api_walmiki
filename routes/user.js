@@ -4,7 +4,13 @@ var Post = mongoose.model('Post');
 var jwt = require('jsonwebtoken');
 
 exports.authenticate = function(req, res, next) {
-  User.findOne({ username: req.body.username }, function (err, user) {
+  var condition = { username: req.body.username };
+  var emailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;  
+  if (emailRegex.test(req.body.username)) {
+    condition = { email: req.body.username };
+  }
+
+  User.findOne(condition, function (err, user) {
     if (err)
       return next(err);
     if (!user)

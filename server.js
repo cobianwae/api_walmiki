@@ -6,6 +6,7 @@ var user = require('./routes/user');
 var post = require('./routes/post');
 var image = require('./routes/image');
 var interest = require('./routes/interest');
+var comment = require('./routes/comment');
 var cors = require('cors');
 var expressJwt = require('express-jwt');
 var allows = require('./utils/express-allows/index.js');
@@ -39,6 +40,9 @@ app.use('/api', allows(expressJwt({secret : 'lookats-05112014162539'}),[
   router.route('/images/:id').get(image.getById);
 
   router.route('/interests').put(interest.doUpdate);
+
+  router.route('/comments/:postId').get(comment.getByPostId);
+  router.route('/comments').post(comment.doCreate);
 
   app.use('/api', router);
   app.listen(serverPort, serverIPAddress, function(){
