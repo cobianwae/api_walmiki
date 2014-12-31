@@ -78,10 +78,10 @@ describe('Post API', function(){
           .end(function(err, res){
             res.body.should.have.property('success');
             res.body.success.should.equal(true);
-            var brand = mongoose.model('Brand');
-            brand.findOne({name:'brodo'}, function(err, brand){
-              brand.should.have.property('name');
-              brand.name.should.equal('brodo');
+            var brand = mongoose.model('User');
+            brand.findOne({fullname:'brodo'}, function(err, brand){
+              brand.should.have.property('fullname');
+              brand.fullname.should.equal('brodo');
               var post = mongoose.model('Post');
               post.findOne({title: 'My First Post'}, function(err, post){
                 post.should.have.property('title');
@@ -147,10 +147,10 @@ describe('Post API', function(){
                 post.title.should.equal('My First Post');
                 post.tags.length.should.equal(2);
                 post.brands.length.should.equal(1);
-                var brand = mongoose.model('Brand');
-                brand.findOne({name:'brodo'}, function(err, brand){
-                  brand.should.have.property('name');
-                  brand.name.should.equal('brodo');
+                var brand = mongoose.model('User');
+                brand.findOne({fullname:'brodo'}, function(err, brand){
+                  brand.should.have.property('fullname');
+                  brand.fullname.should.equal('brodo');
                   done();
                 });
               });
