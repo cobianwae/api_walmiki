@@ -17,7 +17,6 @@ exports.getTimeline = function(req, res, next){
     }
     andConditions.push({$or : orConditions});
     queryParam.$and = andConditions;
-    console.log(queryParam);
     Post.find(queryParam)
     .populate('author', '_id username avatar')
     .sort( { createdOn: -1 } )

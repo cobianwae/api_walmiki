@@ -129,7 +129,7 @@ describe('Timeline API', function(){
         });
       });
     });
-    it('should return user\'s posts and posts from users who are followed after the given date', function(done){
+    it('should return user\'s posts and posts from users who are followed after the given time', function(done){
       authenticate()
       .then(function(token){
         request.post('/images')
