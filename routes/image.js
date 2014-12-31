@@ -2,8 +2,8 @@ var mongoose = require( 'mongoose' );
 var Image = mongoose.model( 'Image' );
 var multiparty = require('multiparty');
 var mime = require('mime');
-var gm = require('gm');
-//var gm = require('gm').subClass({ imageMagick: true });
+//var gm = require('gm');
+var gm = require('gm').subClass({ imageMagick: true });
 
 exports.doCreate = function(req, res, next){
   var form = new multiparty.Form();

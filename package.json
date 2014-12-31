@@ -22,7 +22,7 @@
     "supertest": "^0.15.0"
   },
   "scripts": {
-    "test": "NODE_ENV=test mocha test",
-    "testserver": "NODE_ENV=test supervisor server.js"
+    "winservertest" : "set NODE_ENV=test && supervisor server.js",
+    "wintest" : "set NODE_ENV=test && mocha test"    
   }
 }

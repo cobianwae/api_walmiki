@@ -2,6 +2,7 @@ var mongoose = require( 'mongoose' );
 var Post = mongoose.model( 'Post' );
 var Tag = mongoose.model( 'Tag' );
 var Brand = mongoose.model( 'Brand' );
+var User = mongoose.model( 'User' );
 
 var isEmptyObject = function isEmpty(obj) {
   for(var prop in obj) {
@@ -122,3 +123,19 @@ exports.getById = function(req, res, next){
     res.send(post);
   }).populate('comment.author');
 };
+
+exports.getPosts = function(req, res) {  
+  User.findById(req.query.userId, function(err, user){
+    if(err)
+      res.send({success: false, error: err, message: 'can not load posts because user is not found'});
+
+
+    Post.find({author: user}, function(err, post){
+      if(err)
+        res.send({success: false, error: err, message: 'can not load posts'});
+
+      res.send(post);
+    });
+  });  
+};
+
