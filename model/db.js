@@ -21,6 +21,7 @@ var userSchema = new mongoose.Schema({
 	phoneNumber : String,
 	avatarThumbnail : {type:Schema.Types.ObjectId, ref:'Image'},
 	avatar: {type:Schema.Types.ObjectId, ref:'Image'},
+  cover: {type:Schema.Types.ObjectId, ref:'Image'},
 	about : String,
 	location : String,
 	interests : [String],
@@ -28,6 +29,7 @@ var userSchema = new mongoose.Schema({
 	following : [{ type:Schema.Types.ObjectId, ref:'User'}],
 	isActive : { type:Boolean, default: true },
 	isPrivate : { type:Boolean, default: false },
+  type : {type : String, required:true, default: 'member'},
 	createdOn: { type: Date, default: Date.now },
 	modifiedOn: { type: Date, default: Date.now },
 	modifiedOn: { type: Date, default: Date.now }
@@ -85,6 +87,8 @@ var postSchema = new mongoose.Schema({
 	image: { type: Schema.Types.ObjectId, required : true, ref:'Image' },
 	liked :  [{ type:Schema.Types.ObjectId, ref:'User' }],
 	likedNumber : { type: Number, default: 0},
+  wished : [{ type:Schema.Types.ObjectId, ref:'User' }],
+  wishedNumber : { type:Number, default:0 },
 	isActive : { type: Boolean, default:true },
 	brands :  [taggedBrandSchema],
 	comment : [commentSchema],
@@ -101,6 +105,15 @@ var postSchema = new mongoose.Schema({
 mongoose.model( 'Post', postSchema );
 
 /* ********************************************
+Recommended Post SCHEMA
+******************************************** */
+var recommendedPostSchema = new mongoose.Schema({
+  brand : { type: Schema.Types.ObjectId, required : true, ref:'User' },
+  post : { type: Schema.Types.ObjectId, required : true, ref:'Post' }
+});
+mongoose.model( 'RecommendedPost', postSchema );
+
+/* ********************************************
 CATEGORY SCHEMA
 ******************************************** */
 var tagSchema = new mongoose.Schema({
@@ -111,16 +124,16 @@ mongoose.model( 'Tag', tagSchema );
 /* ********************************************
 BRAND SCHEMA
 ******************************************** */
-var brandSchema = new mongoose.Schema({
-	name : String
-});
-mongoose.model( 'Brand', brandSchema );
+// var brandSchema = new mongoose.Schema({
+// 	name : String
+// });
+// mongoose.model( 'Brand', brandSchema );
 
 /* ********************************************
 TAGED BRAND SCHEMA
 ******************************************** */
 var taggedBrandSchema = new mongoose.Schema({
-	brand : [{type:Schema.Types.ObjectId, ref:'Brand'}],
+	brand : [{type:Schema.Types.ObjectId, ref:'User'}],
 	coordinate : [Number]
 });
 

@@ -3,6 +3,8 @@ var Post = mongoose.model('Post');
 var Comment = mongoose.model('Comment');
 
 exports.getByPostId = function(req, res) {	
+	if(isEmptyObject(req.body))
+    return res.status(403).send('Bad Request');
 	Post.findById(req.params.postId)
 	.populate('comment.author')	
 	.exec(function(err, posts) {
@@ -15,7 +17,11 @@ exports.getByPostId = function(req, res) {
 	});
 }
 
-exports.doCreate = function(req, res) {		
+exports.doCreate = function(req, res) {
+	console.log(req.body);
+	if(isEmptyObject(req.body))
+    return res.status(403).send('Bad Request');
+
 	Post.findById(req.body.thePostId)
 		.exec(function(err, post) {
 			if (err) {

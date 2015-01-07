@@ -1,8 +1,9 @@
 var mongoose = require( 'mongoose' );
 var Post = mongoose.model( 'Post' );
 var Tag = mongoose.model( 'Tag' );
-var Brand = mongoose.model( 'Brand' );
 var User = mongoose.model( 'User' );
+var Brand = mongoose.model( 'User' );
+
 
 var isEmptyObject = function isEmpty(obj) {
   for(var prop in obj) {
@@ -34,7 +35,10 @@ exports.doCreate = function(req, res, next){
       });
     }else{
       var brand = {};
-      brand.name = req.body.brands[i].brand;
+      brand.fullname = req.body.brands[i].brand;
+      brand.username = 'lb_' + new mongoose.Types.ObjectId();
+      brand.email = brand.username + '@lookats.com';
+      brand.password = 'lookatsawsome6414';
       newBrands.push(brand);
       newBrandCoordinates[req.body.brands[i].brand] = req.body.brands[i].coordinate;
     }
