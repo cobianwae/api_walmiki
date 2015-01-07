@@ -102,7 +102,7 @@ exports.doCreate = function(req, res, next){
       }
       return next(err);
     }
-    res.json({success:true});
+    res.json({success:true, id:user._id});
   });
 };
 
