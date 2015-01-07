@@ -156,6 +156,46 @@ describe('Repost API', function () {
     });
     it('should return list of users who were reposted the choosen post after given time', function(done) {
       beforeGetReposted(function(token, post, posts){
+        request.get('/repost/' +  post._id)
+        .set('Authorization', 'Bearer ' + token)
+        .end(function(err, res) {
+          var User  =  mongoose.model('User');
+          var newUser = new User();
+          newUser.username = 'newuser';
+          newUser.fullname = 'New User';
+          newUser.password = 'hagemaru6414';
+          newUser.email = 'newuser@gmail.com';
+          newUser.save(function(err, user){
+            //repost
+            var Post  = mongoose.model('Post');
+            var newPost = new Post();
+            newPost.title = post.title;
+            newPost.image = post.image;
+            newPost.author = user._id;
+            newPost.originalPost = post._id;
+            newPost.createdOn = '9999-01-07T16:18:37.324Z';
+
+            post.reposted.push(user._id);
+            post.repostedNumber += 1;
+            post.save(function(err, post){
+              newPost.save(function(err, newPost){
+                request.get('/repost/' +  post._id + '?after=' + res.body[0].repostedOn)
+                .set('Authorization', 'Bearer ' + token)
+                .end(function(err, res) {
+                  res.body.length.should.equal(1);
+                  res.body[0].username.should.equal('newuser');
+                  done();
+                });
+              });
+            });
+          });
+
+        });
+
+      }, done);
+    });
+    it('should return list of users who were reposted the choosen post before given time', function(done) {
+      beforeGetReposted(function(token, post, posts){
         var User  =  mongoose.model('User');
         var newUser = new User();
         newUser.username = 'newuser';
@@ -170,16 +210,16 @@ describe('Repost API', function () {
           newPost.image = post.image;
           newPost.author = user._id;
           newPost.originalPost = post._id;
-          newPost.createdOn = '9999-01-07T16:18:37.324Z';
+          newPost.createdOn = '0000-01-07T16:18:37.324Z';
 
-          post.reposted.push(user._id);
+          post.reposted.unshift(user._id);
           post.repostedNumber += 1;
           post.save(function(err, post){
             newPost.save(function(err, newPost){
               request.get('/repost/' +  post._id)
               .set('Authorization', 'Bearer ' + token)
               .end(function(err, res) {
-                request.get('/repost/' +  post._id + '?after=' + res.body[9].repostedOn)
+                request.get('/repost/' +  post._id + '?before=' + res.body[9].repostedOn)
                 .set('Authorization', 'Bearer ' + token)
                 .end(function(err, res) {
                   res.body.length.should.equal(1);
