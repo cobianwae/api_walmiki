@@ -199,3 +199,46 @@ exports.doReport = function(req, res, next){
   });
 };
 
+exports.getRepostUsers = function(req, res, next){
+  Post.findById(req.params.id, function(err, post){
+    if(err)
+      return next(err);
+    if(!post)
+      return res.status(404).send({success:false, message:'the post is no longer exist'});
+    var users = [];
+    var queryParam = {};
+    var andConditions = [];
+    if(req.query.before){
+      andConditions.push({createdOn : {$lt : new Date(req.query.before) }});
+    }
+    if(req.query.after){
+      andConditions.push({createdOn : {$gt : new Date(req.query.after) }});
+    }
+    if(andConditions.length === 0){
+      queryParam.originalPost = req.params.id;
+    }else{
+      andConditions.push({originalPost:req.params.id});
+      queryParam.$and = andConditions;
+    }
+    Post.find(queryParam)
+    .populate('author')
+    .sort({createdOn : -1})
+    .limit(10)
+    .exec(function(err, posts) {
+      if(err)
+        return next(err);
+      for(var i in posts) {
+        users.push({
+          _id : posts[i].author._id,
+          username : posts[i].author.username,
+          fullname : posts[i].author.fullname,
+          avatar : posts[i].author.avatar,
+          repostedOn : posts[i].createdOn,
+          isFriend : posts[i].author.followers.indexOf(req.user.id) !== -1
+        });
+      }
+      res.send(users);
+    });
+  });
+};
+
