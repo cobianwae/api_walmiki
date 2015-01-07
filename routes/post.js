@@ -184,3 +184,18 @@ exports.doRepost = function(req, res, next){
   });
 };
 
+exports.doReport = function(req, res, next){
+  Post.findById(req.params.id , function(err, post){
+    if(err)
+      return next(err);
+    if(!post)
+      return res.status(404).send({success:false, message:'the post is no longer exist'});
+    post.isActive = false;
+    post.save(function(err, post){
+      if(err)
+        return next(err);
+      res.send({success : true});
+    });
+  });
+};
+
