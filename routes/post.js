@@ -128,7 +128,7 @@ exports.getById = function(req, res, next){
   }).populate('comment.author');
 };
 
-exports.getPosts = function(req, res) {  
+exports.getPosts = function(req, res) {
   User.findById(req.query.userId, function(err, user){
     if(err)
       res.send({success: false, error: err, message: 'can not load posts because user is not found'});
@@ -140,6 +140,51 @@ exports.getPosts = function(req, res) {
 
       res.send(post);
     });
-  });  
+  });
+};
+
+exports.doLike = function(req, res, next){
+  Post.findById(req.params.id , function(err, post){
+    if(err)
+      return next(err);
+    if(!post)
+      return res.status(404).send({success:false, message:'the post is no longer exist'});
+    if(post.liked.indexOf(req.user.id) !== -1)
+      return res.status(201).send({success:false, message:'the post is already been liked by you'});
+    post.liked.push(req.user.id);
+    post.likedNumber += 1;
+    post.save(function(err, post){
+      if(err)
+        return next(err);
+      res.send({success : true, likedNumber:post.likedNumber});
+    });
+  });
+};
+
+exports.doRepost = function(req, res, next){
+  Post.findById(req.params.id, function(err, post){
+    if(err)
+      return next(err);
+    if(!post)
+      return res.status(404).send({success:false, message: 'the post is no longer exist'});
+    if(post.reposted.indexOf(req.user.id) !== -1)
+      return res.status(201).send({success:false, message: 'the post is already reposted by you'});
+    post.reposted.push(req.user.id);
+    post.repostedNumber += 1;
+    post.save(function(err, post){
+      if(err)
+        return next(err);
+      var newPost = new Post();
+      newPost.title = post.title;
+      newPost.image = post.image;
+      newPost.author = req.user.id;
+      newPost.originalPost = post._id;
+      newPost.save(function(err, newPost){
+        if(err)
+          return next(err);
+        res.send({success:true, repostedNumber : post.repostedNumber});
+      });
+    });
+  });
 };
 
