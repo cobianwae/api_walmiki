@@ -56,9 +56,6 @@ describe('Timeline API', function(){
                     .set('Authorization', 'Bearer ' + token)
                     .expect(200)
                     .end(function(err, res){
-                      for (var i in res.body){
-                        console.log(res.body[i].title + ' ' + new Date(res.body[i].createdOn) );
-                      }
                       res.body.should.be.type('object');
                       res.body.length.should.equal(10);
                       res.body[0].title.should.equal('11 Post');
@@ -111,9 +108,6 @@ describe('Timeline API', function(){
                     request.get('/timeline')
                     .set('Authorization', 'Bearer ' + token)
                     .end(function(err, res){
-                       for (var i in res.body){
-                        console.log(res.body[i].title + ' ' + new Date(res.body[i].createdOn) );
-                      }
                       request.get('/timeline?before='+ res.body[9].createdOn )
                       .set('Authorization', 'Bearer ' + token)
                       .end(function(err, res){
@@ -164,16 +158,12 @@ describe('Timeline API', function(){
                   request.get('/timeline')
                   .set('Authorization', 'Bearer ' + token)
                   .end(function(err, res){
-                    for (var i in res.body){
-                        console.log(res.body[i].title + ' ' + new Date(res.body[i].createdOn) );
-                      }
                     var post = new Post();
                     post.title = '11 Post';
                     post.image = imageId;
                     post.author = newUser._id;
                     post.createdOn = '9999-01-07T16:18:37.324Z';
                     post.save(function(err, post){
-                      console.log(post.title + ' ' + post.createdOn );
                       request.get('/timeline?after=' + res.body[0].createdOn)
                       .set('Authorization', 'Bearer ' + token)
                       .end(function(err, res){

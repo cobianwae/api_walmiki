@@ -187,7 +187,6 @@ describe('User API', function(){
         .set('Authorization', 'Bearer ' + token)
         .expect(200)
         .end(function(err, res){
-          console.log(res.body);
           res.body.length.should.equal(1);
           done();
         });
