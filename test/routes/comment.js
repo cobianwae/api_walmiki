@@ -26,19 +26,6 @@ describe('Comment API', function() {
       });
 		});
 
-		it('should return 404 and json message if post is no longer exist', function(done) {			
-			authenticate().then(function(token){
-        request.get('/comments/' + new mongoose.Types.ObjectId())	        
-	        .set('Authorization', 'Bearer ' + token)
-	        .expect(404)
-	        .end(function(err, res) {
-	          res.body.success.should.equal(false);
-	          res.body.should.have.property('message');
-	          done();
-        });      	
-      });
-		});
-
 		it('should return 200 and success if comment successfully posted', function(done) {			
 			authenticate().then(function(token) {				
 				request.post('/images')
@@ -65,6 +52,21 @@ describe('Comment API', function() {
 				});
       });
 		});
-
 	});
+
+	describe('Get /comments', function() {
+		it('should return 404 and json message if post is no longer exist', function(done) {			
+			authenticate().then(function(token){
+        request.get('/comments/' + new mongoose.Types.ObjectId())	        
+	        .set('Authorization', 'Bearer ' + token)
+	        .expect(404)
+	        .end(function(err, res) {
+	          res.body.success.should.equal(false);
+	          res.body.should.have.property('message');
+	          done();
+        });      	
+      });
+		});
+	});
+		
 })
