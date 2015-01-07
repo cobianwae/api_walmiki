@@ -95,6 +95,7 @@ describe('Timeline API', function(){
                 post.title = '1 Post';
                 post.image = res.body.success[0].id;
                 post.author = newUser._id;
+                post.createdOn = '0000-01-07T16:18:37.324Z';
                 post.save(function(err, post){
                   posts.push({title : '2 Post', image:res.body.success[0].id, author:user._id});
                   posts.push({title : '3 Post', image:res.body.success[0].id, author:user._id});
@@ -170,6 +171,7 @@ describe('Timeline API', function(){
                     post.title = '11 Post';
                     post.image = imageId;
                     post.author = newUser._id;
+                    post.createdOn = '9999-01-07T16:18:37.324Z';
                     post.save(function(err, post){
                       console.log(post.title + ' ' + post.createdOn );
                       request.get('/timeline?after=' + res.body[0].createdOn)
