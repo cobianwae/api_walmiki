@@ -5,7 +5,7 @@ var jwt = require('jsonwebtoken');
 
 exports.authenticate = function(req, res, next) {
   var condition = { username: req.body.username };
-  var emailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;  
+  var emailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   if (emailRegex.test(req.body.username)) {
     condition = { email: req.body.username };
   }
@@ -32,7 +32,7 @@ exports.authenticate = function(req, res, next) {
 };
 
 exports.getById = function(req, res, next){
-   User.findOne({_id : req.params.id})
+  User.findOne({_id : req.params.id})
   .exec(function (err, user) {
     if(err)
       return next(err);
@@ -76,7 +76,7 @@ exports.getById = function(req, res, next){
         } }
       ], function(err, posts){
         if (err)
-           return next(err);
+          return next(err);
         if (posts.length)
           userDTO.tagged = post[0].count;
         res.send(userDTO);
@@ -126,8 +126,8 @@ exports.doUpdate =  function(req, res){
 exports.getUsers = function(req, res){
   var queryParam = {_id : {$ne : req.user.id}};
   if (req.query.fullname){
-      var regex = new RegExp(req.query.fullname, 'i');
-      queryParam = {$and : [ {fullname : regex}, {_id : {$ne : req.user.id}} ]};
+    var regex = new RegExp(req.query.fullname, 'i');
+    queryParam = {$and : [ {fullname : regex}, {_id : {$ne : req.user.id}} ]};
   }
   User.find(queryParam)
   .select('_id fullname avatar username')
@@ -135,5 +135,48 @@ exports.getUsers = function(req, res){
     if(err)
       res.send(err);
     res.send(users);
+  });
+};
+
+exports.doFollow = function(req, res, next){
+  var toBeFollowed = req.params.id;
+  User.findById(req.user.id, function(err, user){
+    if(err)
+      return next(err);
+    User.findById(toBeFollowed, function(err, targetUser){
+      if(err)
+        return next(err);
+      if(!targetUser)
+        return res.status(404).send({success:false, message:'User is no longer exist'});
+      if(user.following.indexOf(targetUser._id) !== -1)
+        return res.status(201).send({success:false, message:'You have followed ' + targetUser.username });
+      user.following.push(targetUser._id);
+      user.save(function(err, user) {
+        if(err)
+          return next(err);
+        targetUser.followers.push(user._id);
+        targetUser.save(function (err, targetUser) {
+          if(err)
+            return next(err);
+          res.send({success:true});
+        });
+      });
+    });
+    //     user.following.push(toBeFollowed);
+    //     user.save(function(err, user){
+    //       if(err)
+    //         return next(err);
+    //       var follower = user._id;
+    //       User.findById(toBeFollowed, function(err, user){
+    //         if(err)
+    //           return next(err);
+    //         user.followers.push(follower);
+    //         user.save(function(err, user){
+    //           if(err)
+    //             return next(err);
+    //           res.send({success:true});
+    //         });
+    //       });
+    //     });
   });
 };

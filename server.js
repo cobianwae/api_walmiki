@@ -32,6 +32,8 @@ app.use('/api', allows(expressJwt({secret : 'lookats-05112014162539'}),[
   router.route('/users/:id').get(user.getById);
   router.route('/users').get(user.getUsers);
 
+  router.route('/follow/users/:id').put(user.doFollow);
+
   router.route('/posts').post(post.doCreate);
   router.route('/posts/:id').get(post.getById);
   router.route('/posts').get(post.getPosts);
