@@ -1,7 +1,7 @@
 var mongoose = require( 'mongoose' ),
 bcrypt = require('bcrypt-nodejs'),
 Schema = mongoose.Schema,
-dbName = typeof process.env.NODE_ENV !== 'undefined' && process.env.NODE_ENV == 'test' ? 'lookatsTest' : 'lookats',
+dbName = typeof process.env.NODE_ENV !== 'undefined' && process.env.NODE_ENV.trim() == 'test' ? 'lookatsTest' : 'lookats',
 dbURI = 'mongodb://localhost/' + dbName;
 
 if (process.env.OPENSHIFT_MONGODB_DB_URL){

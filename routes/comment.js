@@ -13,8 +13,8 @@ exports.getByPostId = function(req, res) {
 		if (!post) {
 			return res.status(404).send({success:false, message: 'the post is no longer exist'});
 		}      
-
-		res.status(202).send({success: true, comments : post.comment});
+		
+		res.status(200).send({success: true, comments : post.comment});
 	});
 }
 

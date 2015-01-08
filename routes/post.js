@@ -137,9 +137,9 @@ exports.getPosts = function(req, res) {
     Post.find({author: user}, function(err, post){
       if(err)
         res.send({success: false, error: err, message: 'can not load posts'});
-
+      
       res.send(post);
-    });
+    }).populate('author');
   });
 };
 
