@@ -47,15 +47,16 @@ describe('Comment API', function() {
 		});
 		
 
-		it('should return 200 and success if comment successfully posted', function(done) {			
+		it('should return 200, success status and increase comment number if comment successfully posted', function(done) {			
 			beforeAddComment(function(token, post){
 				request.post('/comments')
         	.set('Authorization', 'Bearer ' + token)
         	.send({text: 'my first comment', thePostId: post._id})
         	.expect(200)
-        	.end(function(err, res) {        		
+        	.end(function(err, res) {
 						res.body.success.should.equal(true);
 						res.body.comment.text.should.equal('my first comment');
+						res.body.commentNumber.should.equal(post.commentNumber + 1);
 						done();
         	});  
 			}, done);
