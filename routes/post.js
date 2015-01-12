@@ -128,18 +128,38 @@ exports.getById = function(req, res, next){
   }).populate('comment.author');
 };
 
-exports.getPosts = function(req, res) {
+exports.getPosts = function(req, res, next) {
+  if(!req.query.userId) 
+    return res.status(404).send({success:false, message:'userid is needed to load posts'});
+
   User.findById(req.query.userId, function(err, user){
     if(err)
-      res.send({success: false, error: err, message: 'can not load posts because user is not found'});
+      return next(err);
+    if(!user)
+      return res.status(404).send({success:false, message:'this user is no longer exist'});
 
+    var queryParam = {};
+    var andConditions = [];
+    if(req.query.userId) {
+      andConditions.push({author: user});
+    }
+    
+    var sort = {};
+    if(req.query.likedNumber) {
+      sort = {likedNumber: req.query.likedNumber };
+      andConditions.push({ likedNumber: {$gt : 0 } });
+    }
+    queryParam.$and = andConditions;
+    Post.find(queryParam)
+      .populate('author')
+      .sort( sort )
+      .exec(function(err, posts){
+        if(err) return next(err);
+        if(!posts)
+          return res.status(404).send({success:false, message:'the post is no longer exist'});  
 
-    Post.find({author: user}, function(err, post){
-      if(err)
-        res.send({success: false, error: err, message: 'can not load posts'});
-      
-      res.send(post);
-    }).populate('author');
+        res.send({success: true, posts: posts});
+      });    
   });
 };
 
