@@ -161,7 +161,7 @@ describe('Post API', function(){
     });
   });
   describe('GET /posts/:id', function(){
-    it('should return 404 not found error if trying to get posts without user id as parameter or get non existed post', function(done){
+    it('should return 404 not found error if trying to get posts without query params or get non existed post', function(done){
       authenticate()
       .then(function(token){
         request.get('/posts/' + mongoose.Types.ObjectId())
@@ -224,9 +224,51 @@ describe('Post API', function(){
                   request.get('/posts?likedNumber=desc&userId=' + user._id)
                   .set('Authorization', 'Bearer ' + token)
                   .expect(200)
-                  .end(function(err, res) {
+                  .end(function(err, res) {                    
                     res.body.posts.length.should.equal(3);
                     res.body.posts[0].likedNumber.should.equal(2);
+                    done();
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
+    it('should return posts by order its wished number', function(done){
+      authenticate(true)
+      .then(function(token){
+        request.post('/images')
+        .set('Authorization', 'Bearer ' + token)
+        .attach('image', 'test/resources/sample-image.jpg')
+        .end(function(err, res){
+          var User = mongoose.model('User');
+          User.findOne({username : 'ouval'}, function(err, user){
+            var Post = mongoose.model('Post');
+            var posts = [];
+            var newUser = new User();
+            newUser.username = 'cobiandev';
+            newUser.email = 'cobian.dev@gmail.com';
+            newUser.password = 'hagemaru6414';
+            newUser.fullname = 'Dikdik Fazzarudin';
+            newUser.save(function(err, newUser){
+              user.following.push(newUser._id);
+              user.save(function(err, user){
+                posts.push({title : '1 Post', image:res.body.success[0].id, author:user._id, wished: [newUser._id], wishedNumber: 1});
+                posts.push({title : '2 Post', image:res.body.success[0].id, author:user._id, wished: [newUser._id], wishedNumber: 1});
+                posts.push({title : '3 Post', image:res.body.success[0].id, author:user._id, wished: [newUser._id], wishedNumber: 1});
+                posts.push({title : '4 Post', image:res.body.success[0].id, author:user._id});
+                Post.collection.insert(posts, function(err, posts) {
+                  request.get('/posts?wishedNumber=desc&wishedBy=' + newUser._id)
+                  .set('Authorization', 'Bearer ' + token)
+                  .expect(200)
+                  .end(function(err, res) {
+                    res.body.posts.length.should.equal(3);
+                    res.body.posts[0].wishedNumber.should.equal(1);
+                    res.body.posts[1].wishedNumber.should.equal(1);
+                    res.body.posts[2].wishedNumber.should.equal(1);
                     done();
                   });
                 });
