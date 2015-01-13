@@ -141,6 +141,10 @@ exports.getPosts = function(req, res, next) {
     userId = req.query.wishedBy;
   }
 
+  if(req.query.taggedUser) {
+    userId = req.query.taggedUser; 
+  }
+
   User.findById(userId, function(err, user) {
     if(err)
       return next(err);
@@ -158,17 +162,22 @@ exports.getPosts = function(req, res, next) {
     if(req.query.wishedBy) {
       andConditions.push({wished: {$in : [req.query.wishedBy]} });
     }
+
+    if(req.query.taggedUser) {
+      andConditions.push({taggedUsers: {$in : [req.query.taggedUser]} });
+    }
     
     if(req.query.likedNumber) {
       sort = {likedNumber: req.query.likedNumber };
       andConditions.push({ likedNumber: {$gt : 0 } });
     } else if (req.query.wishedNumber) {
-      sort = {wishedNumber: req.query.wishedNumber };
+      sort = {createdOn: req.query.wishedNumber };
       andConditions.push({ wishedNumber: {$gt : 0 } });
+    } else if (req.query.taggedUser) {
+      sort = {createdOn: -1 };      
     }
 
     queryParam.$and = andConditions;
-    
     Post.find(queryParam)
       .populate('author')
       .sort( sort )
