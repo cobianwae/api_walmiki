@@ -170,10 +170,7 @@ exports.getPosts = function(req, res, next) {
     if(req.query.likedNumber) {
       sort = {likedNumber: req.query.likedNumber };
       andConditions.push({ likedNumber: {$gt : 0 } });
-    } else if (req.query.wishedNumber) {
-      sort = {createdOn: req.query.wishedNumber };
-      andConditions.push({ wishedNumber: {$gt : 0 } });
-    } else if (req.query.taggedUser) {
+    } else {
       sort = {createdOn: -1 };      
     }
 

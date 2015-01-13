@@ -50,7 +50,7 @@ exports.getById = function(req, res, next){
     userDTO.isSelf = req.params.id === req.user.id;
     userDTO.areYouFollowHim = user.followers.indexOf(req.user.id) != -1;
     userDTO.isYourFollower = user.following.indexOf(req.user.id) != -1;
-    userDTO.cover = 'http://localhost:9090/api/images/54ae67fece094c542d926c59';
+    userDTO.cover = 'http://localhost:9090/api/images/54ae67fece094c542d926c59';    
     var userPost = Post.aggregate([
       {$match : { author : user._id }},
       {$group : {
@@ -78,7 +78,7 @@ exports.getById = function(req, res, next){
         if (err)
           return next(err);
         if (posts.length)
-          userDTO.tagged = post[0].count;
+          userDTO.tagged = posts[0].count;
         res.send(userDTO);
       });
     });
