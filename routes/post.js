@@ -340,3 +340,32 @@ exports.getWishList = function(req, res, next) {
   
 };
 
+exports.getLikeUsers = function(req, res, next) {
+  if(!req.params.id)
+      return res.status(404).send({success:false, message:'the post is not found'});
+
+  Post.findById(req.params.id)
+    .populate('liked')
+    .sort({createdOn : -1})
+    .limit(10)
+    .exec(function(err, post) {
+      if(err)
+        return next(err);
+      if(!post)
+        return res.status(404).send({success:false, message:'the post is no longer exist'});
+      var users = [];
+      for(var i=0;i<post.liked.length;i++) {
+        users.push({
+          _id : post.liked[i]._id,
+          username : post.liked[i].username,
+          fullname : post.liked[i].fullname,
+          avatar : post.liked[i].avatar,
+          repostedOn : post.liked[i].createdOn,
+          isFollowing : post.liked[i].followers.indexOf(req.user.id) !== -1
+        });
+      }
+      res.send(users);
+    });
+  
+};
+
