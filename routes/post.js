@@ -39,6 +39,7 @@ exports.doCreate = function(req, res, next){
       brand.username = 'lb_' + new mongoose.Types.ObjectId();
       brand.email = brand.username + '@lookats.com';
       brand.password = 'lookatsawsome6414';
+      brand.type = 'brand';
       newBrands.push(brand);
       newBrandCoordinates[req.body.brands[i].brand] = req.body.brands[i].coordinate;
     }
@@ -137,7 +138,7 @@ exports.getPosts = function(req, res) {
     Post.find({author: user}, function(err, post){
       if(err)
         res.send({success: false, error: err, message: 'can not load posts'});
-      
+
       res.send(post);
     }).populate('author');
   });

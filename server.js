@@ -3,6 +3,7 @@ var app = express();
 var db 	= require('./model/db');
 var bodyParser = require('body-parser');
 var user = require('./routes/user');
+var brand = require('./routes/brand');
 var post = require('./routes/post');
 var image = require('./routes/image');
 var interest = require('./routes/interest');
@@ -33,6 +34,8 @@ app.use('/api', allows(expressJwt({secret : 'lookats-05112014162539'}),[
   router.route('/users').get(user.getUsers);
 
   router.route('/follow/users/:id').put(user.doFollow);
+
+  router.route('/brands').get(brand.getBrands);
 
   router.route('/posts').post(post.doCreate);
   router.route('/posts/:id').get(post.getById);
