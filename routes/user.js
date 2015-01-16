@@ -26,7 +26,7 @@ exports.authenticate = function(req, res, next) {
       };
       //the secret key should be placed in configuration file
       var token = jwt.sign(profile, 'lookats-05112014162539');
-      res.send({success:true, token: token });
+      res.send({success:true, token: token, id: user._id });
     });
   });
 };
