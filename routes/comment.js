@@ -38,10 +38,10 @@ exports.doCreate = function(req, res) {
 			comment.author = req.user.id;
 			comment.postId = req.body.thePostId;
 			post.comment.push(comment);
-
+			post.commentNumber = post.commentNumber + 1;
 			post.save(function(saveErr, updatedPost) {
 				Post.findOne(updatedPost).populate('comment.author').exec(function(err, updatedPost){
-					res.send({success: true, message: 'sucess add comment', comment: updatedPost.comment.id(comment._id)});
+					res.send({success: true, message: 'sucess add comment', comment: updatedPost.comment.id(comment._id), commentNumber: updatedPost.commentNumber});
 				})
 			});
 		});

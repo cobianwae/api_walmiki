@@ -34,6 +34,7 @@ app.use('/api', allows(expressJwt({secret : 'lookats-05112014162539'}),[
   router.route('/users').get(user.getUsers);
 
   router.route('/follow/users/:id').put(user.doFollow);
+  router.route('/unfollow/users/:id').put(user.doUnfollow);
 
   router.route('/brands').get(brand.getBrands);
 
@@ -43,8 +44,10 @@ app.use('/api', allows(expressJwt({secret : 'lookats-05112014162539'}),[
 
   router.route('/repost/:id').put(post.doRepost);
   router.route('/repost/:id').get(post.getRepostUsers);
-  router.route('/like/posts/:id').put(post.doLike);
   router.route('/report/posts/:id').put(post.doReport);
+  router.route('/like/posts/:id').put(post.doLike);
+  router.route('/like/posts/:id').get(post.getLikeUsers);
+  router.route('/wish/posts/:id').put(post.doWish);  
 
   router.route('/images').post(image.doCreate);
   router.route('/images/:id').get(image.getById);

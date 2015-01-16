@@ -50,7 +50,7 @@ exports.getById = function(req, res, next){
     userDTO.isSelf = req.params.id === req.user.id;
     userDTO.areYouFollowHim = user.followers.indexOf(req.user.id) != -1;
     userDTO.isYourFollower = user.following.indexOf(req.user.id) != -1;
-    userDTO.cover = 'http://localhost:9090/api/images/54745c8914f028c416e8d4e8';
+    userDTO.cover = 'http://localhost:9090/api/images/54ae67fece094c542d926c59';    
     var userPost = Post.aggregate([
       {$match : { author : user._id }},
       {$group : {
@@ -78,7 +78,7 @@ exports.getById = function(req, res, next){
         if (err)
           return next(err);
         if (posts.length)
-          userDTO.tagged = post[0].count;
+          userDTO.tagged = posts[0].count;
         res.send(userDTO);
       });
     });
@@ -178,5 +178,46 @@ exports.doFollow = function(req, res, next){
     //         });
     //       });
     //     });
+  });
+};
+
+exports.doUnfollow = function(req, res, next) {
+  var unfollowedId = req.params.id;
+  User.findById(req.user.id, function(err, user){
+    if(err)
+      return next(err);
+    User.findById(unfollowedId, function(err, targetUser){
+      if(err)
+        return next(err);
+      if(!targetUser)
+        return res.status(404).send({success:false, message:'User is no longer exist'});      
+      
+      var index = user.following.indexOf(targetUser._id);
+      if(index > -1) {
+        user.following.splice(index, 1);
+
+        user.save(function(err, user) {
+        if(err)
+          return next(err);
+        
+        var index = targetUser.followers.indexOf(user._id);
+        if(index > -1) {
+          targetUser.followers.splice(index, 1);
+          targetUser.save(function (err, targetUser) {
+          if(err)
+              return next(err);
+            res.send({success:true});
+          });
+        } else {
+          return res.status(201).send({success:false, message:user.username + ' not founded in follower list'});    
+        }
+        
+        });
+      } else {
+        return res.status(201).send({success:false, message:targetUser.username + ' not founded in following list'});
+      }
+
+
+    });
   });
 };

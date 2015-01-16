@@ -161,7 +161,7 @@ describe('Post API', function(){
     });
   });
   describe('GET /posts/:id', function(){
-    it('should return 404 not found error if trying to get non exist post', function(done){
+    it('should return 404 not found error if trying to get posts without query params or get non existed post', function(done){
       authenticate()
       .then(function(token){
         request.get('/posts/' + mongoose.Types.ObjectId())
@@ -197,4 +197,172 @@ describe('Post API', function(){
       });
     });
   });
+
+  describe('GET /posts/', function(){
+    it('should return posts by this user ordered by date', function(done){
+      authenticate()
+      .then(function(token){
+        request.post('/images')
+        .set('Authorization', 'Bearer ' + token)
+        .attach('image', 'test/resources/sample-image.jpg')
+        .end(function(err, res){
+          var User = mongoose.model('User');
+          User.findOne({username : 'cobianwae'}, function(err, user){
+            var Post = mongoose.model('Post');
+            var posts = [];
+            var newUser = new User();
+            newUser.username = 'cobiandev';
+            newUser.email = 'cobian.dev@gmail.com';
+            newUser.password = 'hagemaru6414';
+            newUser.fullname = 'Dikdik Fazzarudin';
+            newUser.save(function(err, newUser){
+              user.following.push(newUser._id);
+              user.save(function(err, user){
+                posts.push({title : '1 Post', image:res.body.success[0].id, author:user._id, createdOn: '0000-01-07T16:13:37.324Z'});
+                posts.push({title : '2 Post', image:res.body.success[0].id, author:user._id, createdOn: '0000-01-07T16:14:37.324Z'});
+                posts.push({title : '3 Post', image:res.body.success[0].id, author:user._id, createdOn: '0000-01-07T16:15:37.324Z'});
+                posts.push({title : '4 Post', image:res.body.success[0].id, author:user._id, createdOn: '0000-01-07T16:16:37.324Z'});
+                Post.collection.insert(posts, function(err, posts) {
+                  request.get('/posts?userId=' + user._id)
+                  .set('Authorization', 'Bearer ' + token)
+                  .expect(200)
+                  .end(function(err, res) {                    
+                    res.body.posts.length.should.equal(4);
+                    res.body.posts[0].title.should.equal('4 Post');
+                    res.body.posts[3].title.should.equal('1 Post');
+                    done();
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
+    it('should return posts by order its liked number', function(done){
+      authenticate()
+      .then(function(token){
+        request.post('/images')
+        .set('Authorization', 'Bearer ' + token)
+        .attach('image', 'test/resources/sample-image.jpg')
+        .end(function(err, res){
+          var User = mongoose.model('User');
+          User.findOne({username : 'cobianwae'}, function(err, user){
+            var Post = mongoose.model('Post');
+            var posts = [];
+            var newUser = new User();
+            newUser.username = 'cobiandev';
+            newUser.email = 'cobian.dev@gmail.com';
+            newUser.password = 'hagemaru6414';
+            newUser.fullname = 'Dikdik Fazzarudin';
+            newUser.save(function(err, newUser){
+              user.following.push(newUser._id);
+              user.save(function(err, user){
+                posts.push({title : '1 Post', image:res.body.success[0].id, author:user._id, liked: [user._id], likedNumber: 1});
+                posts.push({title : '2 Post', image:res.body.success[0].id, author:user._id, liked: [user._id], likedNumber: 1});
+                posts.push({title : '3 Post', image:res.body.success[0].id, author:user._id, liked: [user._id, newUser._id], likedNumber: 2});
+                posts.push({title : '4 Post', image:res.body.success[0].id, author:user._id});
+                Post.collection.insert(posts, function(err, posts) {
+                  request.get('/posts?likedNumber=desc&userId=' + user._id)
+                  .set('Authorization', 'Bearer ' + token)
+                  .expect(200)
+                  .end(function(err, res) {                    
+                    res.body.posts.length.should.equal(3);
+                    res.body.posts[0].likedNumber.should.equal(2);
+                    done();
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
+    it('should return posts contains users wish list and order by date', function(done){
+      authenticate(true)
+      .then(function(token){
+        request.post('/images')
+        .set('Authorization', 'Bearer ' + token)
+        .attach('image', 'test/resources/sample-image.jpg')
+        .end(function(err, res){
+          var User = mongoose.model('User');
+          User.findOne({username : 'ouval'}, function(err, user){
+            var Post = mongoose.model('Post');
+            var posts = [];
+            var newUser = new User();
+            newUser.username = 'cobiandev';
+            newUser.email = 'cobian.dev@gmail.com';
+            newUser.password = 'hagemaru6414';
+            newUser.fullname = 'Dikdik Fazzarudin';
+            newUser.save(function(err, newUser){
+              user.following.push(newUser._id);
+              user.save(function(err, user){
+                posts.push({title : '1 Post', image:res.body.success[0].id, author:user._id, wished: [newUser._id], wishedNumber: 2, createdOn: '0000-01-07T16:11:37.324Z'});
+                posts.push({title : '2 Post', image:res.body.success[0].id, author:user._id, wished: [newUser._id], wishedNumber: 3, createdOn: '0000-01-07T16:12:37.324Z'});
+                posts.push({title : '3 Post', image:res.body.success[0].id, author:user._id, wished: [newUser._id], wishedNumber: 1, createdOn: '0000-01-07T16:13:37.324Z'});
+                posts.push({title : '4 Post', image:res.body.success[0].id, author:user._id});
+                Post.collection.insert(posts, function(err, posts) {
+                  request.get('/posts?wishedNumber=desc&wishedBy=' + newUser._id)
+                  .set('Authorization', 'Bearer ' + token)
+                  .expect(200)
+                  .end(function(err, res) {
+                    res.body.posts.length.should.equal(3);
+                    res.body.posts[0].wishedNumber.should.equal(1);
+                    res.body.posts[1].wishedNumber.should.equal(3);
+                    res.body.posts[2].wishedNumber.should.equal(2);
+                    done();
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
+    it('should return posts where user has been tagged and ordered by date', function(done){
+      authenticate()
+      .then(function(token){
+        request.post('/images')
+        .set('Authorization', 'Bearer ' + token)
+        .attach('image', 'test/resources/sample-image.jpg')
+        .end(function(err, res){
+          var User = mongoose.model('User');
+          User.findOne({username : 'cobianwae'}, function(err, user){
+            var Post = mongoose.model('Post');
+            var posts = [];
+            var newUser = new User();
+            newUser.username = 'cobiandev';
+            newUser.email = 'cobian.dev@gmail.com';
+            newUser.password = 'hagemaru6414';
+            newUser.fullname = 'Dikdik Fazzarudin';
+            newUser.save(function(err, newUser){
+              user.following.push(newUser._id);
+              user.save(function(err, user){
+                posts.push({title : '1 Post', image:res.body.success[0].id, author:user._id, taggedUsers: [newUser._id], createdOn: '0000-01-07T16:11:37.324Z'});
+                posts.push({title : '2 Post', image:res.body.success[0].id, author:user._id, taggedUsers: [user._id, newUser._id], createdOn: '0000-01-07T16:12:37.324Z'});
+                posts.push({title : '3 Post', image:res.body.success[0].id, author:user._id, taggedUsers: [newUser._id], createdOn: '0000-01-07T16:13:37.324Z'});
+                posts.push({title : '4 Post', image:res.body.success[0].id, author:user._id});
+                Post.collection.insert(posts, function(err, posts) {
+                  request.get('/posts?taggedUser=' + newUser._id)
+                  .set('Authorization', 'Bearer ' + token)
+                  .expect(200)
+                  .end(function(err, res) {
+                    res.body.posts.length.should.equal(3);
+                    res.body.posts[0].taggedUsers.length.should.equal(1);
+                    res.body.posts[1].taggedUsers.length.should.equal(2);
+                    res.body.posts[2].taggedUsers.length.should.equal(1);
+                    done();
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+  
 });

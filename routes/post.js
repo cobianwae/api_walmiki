@@ -129,18 +129,62 @@ exports.getById = function(req, res, next){
   }).populate('comment.author');
 };
 
-exports.getPosts = function(req, res) {
-  User.findById(req.query.userId, function(err, user){
+exports.getPosts = function(req, res, next) {
+  if(!req.query)
+    return res.status(404).send({success:false, message:'the page is not found, query params is needed to load posts'});
+
+  var userId;
+  if(req.query.userId) {
+    userId = req.query.userId;
+  }
+
+  if (req.query.wishedBy) {
+    userId = req.query.wishedBy;
+  }
+
+  if(req.query.taggedUser) {
+    userId = req.query.taggedUser;
+  }
+
+  User.findById(userId, function(err, user) {
     if(err)
-      res.send({success: false, error: err, message: 'can not load posts because user is not found'});
+      return next(err);
+    if(!user)
+      return res.status(404).send({success:false, message:'this user is no longer exist'});
 
+    var queryParam = {};
+    var sort = {};
+    var andConditions = [];
+    if(req.query.userId) {
+      andConditions.push({author: user});
+    }
 
-    Post.find({author: user}, function(err, post){
-      if(err)
-        res.send({success: false, error: err, message: 'can not load posts'});
+    if(req.query.wishedBy) {
+      andConditions.push({wished: {$in : [req.query.wishedBy]} });
+    }
 
-      res.send(post);
-    }).populate('author');
+    if(req.query.taggedUser) {
+      andConditions.push({taggedUsers: {$in : [req.query.taggedUser]} });
+    }
+
+    if(req.query.likedNumber) {
+      sort = {likedNumber: req.query.likedNumber };
+      andConditions.push({ likedNumber: {$gt : 0 } });
+    } else {
+      sort = {createdOn: -1 };
+    }
+
+    queryParam.$and = andConditions;
+    Post.find(queryParam)
+      .populate('author')
+      .sort( sort )
+      .exec(function(err, posts){
+        if(err) return next(err);
+        if(!posts)
+          return res.status(404).send({success:false, message:'the post is no longer exist'});
+
+        res.send({success: true, posts: posts});
+      });
   });
 };
 
@@ -245,5 +289,83 @@ exports.getRepostUsers = function(req, res, next){
       res.send(users);
     });
   });
+};
+
+exports.doWish = function(req, res, next){
+  Post.findById(req.params.id , function(err, post){
+    if(err)
+      return next(err);
+    if(!post)
+      return res.status(404).send({success:false, message:'the post is no longer exist'});
+    if(post.liked.indexOf(req.user.id) !== -1)
+      return res.status(201).send({success:false, message:'the post is already been liked by you'});
+
+    User.findById(post.author, function(err, user){
+      if(user.type !== 'brand')
+        return res.status(201).send({success:false, message:'wishlist only allowed for brands product'});
+
+      post.wished.push(req.user.id);
+      post.wishedNumber += 1;
+      post.save(function(err, post){
+        if(err)
+          return next(err);
+        res.send({success : true, wishedNumber:post.wishedNumber});
+      });
+    });
+
+  });
+};
+
+exports.getWishList = function(req, res, next) {
+
+  User.findById(req.params.id, function(err, user){
+    if(err)
+      return next(err);
+
+    if(!user)
+      return res.status(404).send({success:false, message:'the user is no longer exist'});
+
+    var queryParam = {};
+    var andConditions = [];
+    andConditions.push({wished: {$in : [user._id]} });
+    queryParam.$and = andConditions;
+    Post.find(queryParam)
+    .exec(function(err, posts){
+      if (err)
+        return next(err);
+
+      res.send({success : true, posts: posts});
+    });
+  });
+
+};
+
+exports.getLikeUsers = function(req, res, next) {
+  if(!req.params.id)
+      return res.status(404).send({success:false, message:'the post is not found'});
+
+  Post.findById(req.params.id)
+    .populate('liked')
+    .sort({createdOn : -1})
+    .limit(10)
+    .exec(function(err, post) {
+      if(err)
+        return next(err);
+      if(!post)
+        return res.status(404).send({success:false, message:'the post is no longer exist'});
+      var users = [];
+      for(var i=0;i<post.liked.length;i++) {
+        users.push({
+          _id : post.liked[i]._id,
+          username : post.liked[i].username,
+          fullname : post.liked[i].fullname,
+          avatar : post.liked[i].avatar,
+          repostedOn : post.liked[i].createdOn,
+          isFollowing : post.liked[i].followers.indexOf(req.user.id) !== -1
+        });
+      }
+      res.send(users);
+    });
+
 };
 
