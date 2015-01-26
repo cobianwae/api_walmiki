@@ -51,6 +51,9 @@ exports.getById = function(req, res, next){
     userDTO.areYouFollowHim = user.followers.indexOf(req.user.id) != -1;
     userDTO.isYourFollower = user.following.indexOf(req.user.id) != -1;
     userDTO.cover = 'http://localhost:9090/api/images/54ae67fece094c542d926c59';    
+    userDTO.about = user.about;
+    userDTO.email = user.email;
+    userDTO.phoneNumber = user.phoneNumber;
     var userPost = Post.aggregate([
       {$match : { author : user._id }},
       {$group : {
@@ -218,6 +221,32 @@ exports.doUnfollow = function(req, res, next) {
       }
 
 
+    });
+  });
+};
+
+exports.changePassword = function(req, res, next) {
+  User.findById(req.user.id, function(err, user){
+    if(err)
+      return next(err);
+    user.verifyPassword(req.body.currentPassword, function(err, isMatch){
+      if (err)
+        return next(err);
+      if (!isMatch)
+        return res.status(400).send({success:false, message:'The current password password is wrong', field:'currentPassword'});
+
+      if(req.body.newPassword == req.body.confirmPassword) {
+        user.password = req.body.newPassword;
+        user.save(function(saveErr, updatedUser){
+          if(saveErr)
+            res.send(saveErr);
+          res.send({success:true, message: 'success updated password' });
+        });
+        
+      } else {
+        return res.status(400).send({success:false, message:'The confirm password is not match with new password', field:'confirmPassword'});
+      }
+      
     });
   });
 };
