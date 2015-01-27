@@ -62,6 +62,68 @@ describe('User API', function(){
         });
       });
     });
+
+    it('should return error if trying to update with existing email', function(done) {
+      var User = mongoose.model('User');
+      var users = [];
+      request.post('/users')
+      .send({username: 'fazar', email: 'hallofazar@gmail.com', password: 'hagemaru', 'fullname': 'Mochamad Fazar'})
+      .expect(200)
+      .end(function(err, res){
+        request.post('/users')
+          .send({username: 'bradpitt', email: 'bradpitt@gmail.com', password: 'hagemaru', 'fullname': 'Brad Pitt'})
+          .expect(200)
+          .end(function(err, res) {
+            getUserToken({username:'fazar', password:'hagemaru'})
+              .then(function(token){
+                request.put('/users')
+                .send({username: 'bradpitt', email: 'hallofazar@gmail.com'})
+                .set('Authorization', 'Bearer ' + token)
+                .expect(409)
+                .end(function(err, res){
+                  if(err)
+                    throw err;
+                  res.body.should.have.property('message');
+                  res.body.success.should.equal(false);
+                  res.body.field.should.equal('username');
+                  console.log(res.body.message);
+                  done();
+                })
+              });
+          });
+      });
+    });
+
+    it('should return error if trying to update with existing username', function(done) {
+      var User = mongoose.model('User');
+      var users = [];
+      request.post('/users')
+      .send({username: 'fazar', email: 'hallofazar@gmail.com', password: 'hagemaru', 'fullname': 'Mochamad Fazar'})
+      .expect(200)
+      .end(function(err, res){
+        request.post('/users')
+          .send({username: 'bradpitt', email: 'bradpitt@gmail.com', password: 'hagemaru', 'fullname': 'Brad Pitt'})
+          .expect(200)
+          .end(function(err, res) {
+            getUserToken({username:'fazar', password:'hagemaru'})
+              .then(function(token){
+                request.put('/users')
+                .send({email: 'bradpitt@gmail.com', username: 'fazar'})
+                .set('Authorization', 'Bearer ' + token)
+                .expect(409)
+                .end(function(err, res){
+                  if(err)
+                    throw err;
+                  res.body.should.have.property('message');
+                  res.body.success.should.equal(false);
+                  res.body.field.should.equal('email');
+                  console.log(res.body.message);
+                  done();
+                })
+              });
+          });
+      });
+    });
   });
   describe('POST /authenticate', function(){
      var body = {
@@ -195,7 +257,7 @@ describe('User API', function(){
   });
 
   describe('POST /changePassword', function() {
-    it('should return 400 status if current password in wrong', function(done){
+    it('should return 400 status if current password is wrong', function(done){
       var User = mongoose.model('User');
       var newUser = new User();
       newUser.username = 'ffazar';
@@ -205,7 +267,7 @@ describe('User API', function(){
       newUser.save(function(err, newUser){
         getUserToken({username:'ffazar', password:'hagemaru'})
         .then(function(token){
-          request.post('/changePassword')
+          request.put('/changePassword')
           .send({currentPassword: 'hagemaru1', newPassword:'hagemaru2', confirmPassword:'hagemaru3'})
           .set('Authorization', 'Bearer ' + token)
           .expect(400)
@@ -230,7 +292,7 @@ describe('User API', function(){
       newUser.save(function(err, newUser){
         getUserToken({username:'ffazar', password:'hagemaru'})
         .then(function(token){
-          request.post('/changePassword')
+          request.put('/changePassword')
           .send({currentPassword: 'hagemaru', newPassword:'hagemaru2', confirmPassword:'hagemaru3'})
           .set('Authorization', 'Bearer ' + token)
           .expect(400)
@@ -243,36 +305,35 @@ describe('User API', function(){
       });
     });
   });
-
-  describe('POST /changePassword', function() {
-    it('should return 200 status if user success change their password and he should be able to login again', function(done){
-      var User = mongoose.model('User');
-      var newUser = new User();
-      newUser.username = 'ffazar';
-      newUser.email = 'hallofazar@gmail.com';
-      newUser.password = 'hagemaru';
-      newUser.fullname = 'Mochamad Fazar';
-      newUser.save(function(err, newUser){
-        getUserToken({username:'ffazar', password:'hagemaru'})
-        .then(function(token){
-          request.post('/changePassword')
-          .send({currentPassword: 'hagemaru', newPassword:'hagemaru2', confirmPassword:'hagemaru2'})
-          .set('Authorization', 'Bearer ' + token)
-          .expect(400)
-          .end(function(err, res) {
-            res.body.success.should.equal(true);
-            request.post('/authenticate')
-              .send({username:'ffazar', password:'hagemaru2'})
-              .expect(200)
-              .end(function(err, res){
-                res.body.should.have.property('token');
-                res.body.success.should.equal(true);
-                done();
-              });          
-            });
-        });        
-      });
+  
+  it('should return 200 status if user success change their password and he should be able to login again', function(done){
+    var User = mongoose.model('User');
+    var newUser = new User();
+    newUser.username = 'ffazar';
+    newUser.email = 'hallofazar@gmail.com';
+    newUser.password = 'hagemaru';
+    newUser.fullname = 'Mochamad Fazar';
+    newUser.save(function(err, newUser){
+      getUserToken({username:'ffazar', password:'hagemaru'})
+      .then(function(token){
+        request.put('/changePassword')
+        .send({currentPassword: 'hagemaru', newPassword:'hagemaru2', confirmPassword:'hagemaru2'})
+        .set('Authorization', 'Bearer ' + token)
+        .expect(400)
+        .end(function(err, res) {
+          res.body.success.should.equal(true);
+          request.post('/authenticate')
+            .send({username:'ffazar', password:'hagemaru2'})
+            .expect(200)
+            .end(function(err, res){
+              res.body.should.have.property('token');
+              res.body.success.should.equal(true);
+              done();
+            });          
+          });
+      });        
     });
   });
+  
 
 });

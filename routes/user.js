@@ -110,19 +110,44 @@ exports.doCreate = function(req, res, next){
 };
 
 exports.doUpdate =  function(req, res){
-  User.findById(req.user.id, function(err, user){
-    if(err)
-      res.send(err);
+
+  var doUpdateCallback = function(user) {
     for(var prop in req.body){
-      if(req.body.hasOwnProperty(prop)){
-        user[prop] = req.body[prop];
+        if(req.body.hasOwnProperty(prop)){
+          user[prop] = req.body[prop];
+        }
       }
-    }
     user.save(function(saveErr, updatedUser){
       if(saveErr)
         res.send(saveErr);
-      res.json(updatedUser);
+      res.send({success: true, updatedUser: updatedUser});
     });
+  }
+
+  User.findById(req.user.id, function(err, user){
+    if(err)
+      res.send(err);
+
+    if(user.username == req.body.username) {
+      if(user.email == req.body.email) {
+        doUpdateCallback(user);
+      } else {
+        User.findOne({email: req.body.email}, function(err, user){
+        if(err)
+          res.send(err);
+
+        return res.status(409).send({success:false, message: 'this email is already registered', field: 'email'});
+        });
+      }
+    } else {
+      User.findOne({username: req.body.username}, function(err, user){
+        if(err)
+          res.send(err);
+
+        return res.status(409).send({success:false, message: 'this username is already registered', field: 'username'});
+      });
+    }
+    
   });
 };
 
@@ -233,7 +258,7 @@ exports.changePassword = function(req, res, next) {
       if (err)
         return next(err);
       if (!isMatch)
-        return res.status(400).send({success:false, message:'The current password password is wrong', field:'currentPassword'});
+        return res.status(400).send({success:false, message:'The current password is wrong', field:'currentPassword'});
 
       if(req.body.newPassword == req.body.confirmPassword) {
         user.password = req.body.newPassword;
