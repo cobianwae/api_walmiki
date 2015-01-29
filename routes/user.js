@@ -50,7 +50,7 @@ exports.getById = function(req, res, next){
     userDTO.isSelf = req.params.id === req.user.id;
     userDTO.areYouFollowHim = user.followers.indexOf(req.user.id) != -1;
     userDTO.isYourFollower = user.following.indexOf(req.user.id) != -1;
-    userDTO.cover = 'http://localhost:9090/api/images/54ae67fece094c542d926c59';    
+    userDTO.cover = 'http://localhost:9090/api/images/54ae67fece094c542d926c59';
     var userPost = Post.aggregate([
       {$match : { author : user._id }},
       {$group : {
@@ -123,18 +123,27 @@ exports.doUpdate =  function(req, res){
   });
 };
 
-exports.getUsers = function(req, res){
-  var queryParam = {_id : {$ne : req.user.id}};
-  if (req.query.fullname){
-    var regex = new RegExp(req.query.fullname, 'i');
-    queryParam = {$and : [ {fullname : regex}, {_id : {$ne : req.user.id}} ]};
+exports.getUsers = function(req, res, next){
+  if(!req.query.fullname || req.query.fullname === ''){
+    return res.send([]);
   }
-  User.find(queryParam)
-  .select('_id fullname avatar username')
-  .exec(function(err, users){
+  User.findById(req.user.id)
+  .select('followers')
+  .exec(function(err, user){
     if(err)
-      res.send(err);
-    res.send(users);
+      return next(err);
+    var queryParam = {_id : {$in : user.followers}};
+    if (req.query.fullname){
+      var regex = new RegExp(req.query.fullname, 'i');
+      queryParam = {$and : [ {$or : [{fullname : regex}, {username : regex}]},{_id :{ $in : user.followers}} ]};
+    }
+    User.find(queryParam)
+    .select('_id fullname avatar username')
+    .exec(function(err, users){
+      if(err)
+        return next(err);
+      res.send(users);
+    });
   });
 };
 
@@ -162,22 +171,6 @@ exports.doFollow = function(req, res, next){
         });
       });
     });
-    //     user.following.push(toBeFollowed);
-    //     user.save(function(err, user){
-    //       if(err)
-    //         return next(err);
-    //       var follower = user._id;
-    //       User.findById(toBeFollowed, function(err, user){
-    //         if(err)
-    //           return next(err);
-    //         user.followers.push(follower);
-    //         user.save(function(err, user){
-    //           if(err)
-    //             return next(err);
-    //           res.send({success:true});
-    //         });
-    //       });
-    //     });
   });
 };
 
@@ -190,34 +183,117 @@ exports.doUnfollow = function(req, res, next) {
       if(err)
         return next(err);
       if(!targetUser)
-        return res.status(404).send({success:false, message:'User is no longer exist'});      
-      
+        return res.status(404).send({success:false, message:'User is no longer exist'});
       var index = user.following.indexOf(targetUser._id);
       if(index > -1) {
         user.following.splice(index, 1);
-
         user.save(function(err, user) {
-        if(err)
-          return next(err);
-        
-        var index = targetUser.followers.indexOf(user._id);
-        if(index > -1) {
-          targetUser.followers.splice(index, 1);
-          targetUser.save(function (err, targetUser) {
           if(err)
-              return next(err);
-            res.send({success:true});
-          });
-        } else {
-          return res.status(201).send({success:false, message:user.username + ' not founded in follower list'});    
-        }
-        
+            return next(err);
+          var index = targetUser.followers.indexOf(user._id);
+          if(index > -1) {
+            targetUser.followers.splice(index, 1);
+            targetUser.save(function (err, targetUser) {
+              if(err)
+                return next(err);
+              res.send({success:true});
+            });
+          } else {
+            return res.status(201).send({success:false, message:user.username + ' not founded in follower list'});
+          }
         });
       } else {
         return res.status(201).send({success:false, message:targetUser.username + ' not founded in following list'});
       }
+    });
+  });
+};
 
+var doRecommendUser = function(req, res){
+  var page = req.body.page ? req.body.page : 1;
+  var limit = 10;
+  var skip = (page - 1) * limit;
+  var originResults = [];
+  var skipUsers = []
+  User.findById(req.user.id, function(err, user){
+    skipUsers.push(user._id);
+    Tag.find({name : {$in : user.interests}}, function(err, tags){
+      var tagIds = [];
+      for(var i in tags){
+        tagIds.push(tags[i]._id);
+      }
+      Post.aggregate([
+        {$match : { $and : [{tags: { $in: tagIds }},{author : {$nin : skipUsers}}]} },
+        {$group : {
+          _id : "$author",
+          liked :{ $sum : "$likedNumber" }
+        }
+        },
+        {$sort : { liked : -1 } },
+        {$skip : skip },
+        {$limit : limit }
+      ],function(aggErr, result){
+        if (aggErr)
+          res.send(aggErr);
+        User.populate(result,{
+          path : "_id",
+        }, function(err, result){
+          Image.populate(result, {
+            path : "_id.avatar"
+          }, function(err, result){
+            for(var i in result){
+              originResults.push({
+                id : result[i]._id._id,
+                username : result[i]._id.username,
+                avatar : result[i]._id.avatar
 
+              });
+              skipUsers.push(result[i]._id._id);
+            }
+            if(result.length < limit){
+              limit = limit-result.length;
+              User
+              .find({ $and : [{ interests :{$in : user.interests}}, {_id : {$nin : skipUsers }} ] })
+              .populate('avatar')
+              .skip((page-1) * limit)
+              .limit(limit)
+              .exec(function(err, users){
+                if (err)
+                  res.send(err);
+                for(var i in users){
+                  originResults.push({
+                    id : users[i]._id,
+                    username : users[i].username,
+                    avatar : users[i].avatar
+                  });
+                  skipUsers.push(users[i]._id);
+                }
+                if (users.length < limit){
+                  limit = limit-users.length;
+                  skip = (page-1) * limit;
+                  User
+                  .find({_id : {$nin : skipUsers}})
+                  .populate('avatar')
+                  .exec(function(err, randUsers){
+                    for(var i in randUsers){
+                      originResults.push({
+                        id : randUsers[i]._id,
+                        username : randUsers[i].username,
+                        avatar : randUsers[i].avatar
+                      });
+                    }
+                    res.send(originResults);
+                  });
+                }else{
+                  res.send(originResults);
+                }
+              });
+            }else{
+              res.send(originResults);
+            }
+          });
+        });
+      });
     });
   });
 };

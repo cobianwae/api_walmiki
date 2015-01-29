@@ -55,7 +55,7 @@ exports.doCreate = function(req, res, next){
   }
   for(var i in req.body.taggedUsers){
     if(mongoose.Types.ObjectId.isValid(req.body.taggedUsers[i])){
-      post.taggedUsers.push(mongoose.Types.ObjectId(req.body.taggedUsers[i]));
+      post.taggedUsers.push(req.body.taggedUsers[i]);
     }
   }
   if(newTags.length == 0 && newBrands.length == 0){
