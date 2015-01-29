@@ -145,3 +145,12 @@ var followingRequestSchema = new mongoose.Schema({
 	follower : {type:Schema.Types.ObjectId, ref:'User'}
 });
 mongoose.model( 'FollowingRequest', followingRequestSchema );
+
+/* ********************************************
+CHOSEN INTEREST SCHEMA
+******************************************** */
+var chosenInterestSchema = new mongoose.Schema({
+	interest : {type: String, unique:true},
+	count: { type: Number, default: 0}
+});
+mongoose.model( 'ChosenInterest', chosenInterestSchema );

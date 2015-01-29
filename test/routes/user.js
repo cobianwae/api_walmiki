@@ -77,7 +77,7 @@ describe('User API', function(){
             getUserToken({username:'fazar', password:'hagemaru'})
               .then(function(token){
                 request.put('/users')
-                .send({username: 'bradpitt', email: 'hallofazar@gmail.com'})
+                .send({username: 'bradpitt', email: 'hallofazar'})
                 .set('Authorization', 'Bearer ' + token)
                 .expect(409)
                 .end(function(err, res){

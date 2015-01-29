@@ -54,6 +54,7 @@ app.use('/api', allows(expressJwt({secret : 'lookats-05112014162539'}),[
   router.route('/images/:id').get(image.getById);
 
   router.route('/interests').put(interest.doUpdate);
+  router.route('/interests').get(interest.getInterests);
 
   router.route('/comments/:postId').get(comment.getByPostId);
   router.route('/comments').post(comment.doCreate);
