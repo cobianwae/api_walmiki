@@ -237,18 +237,28 @@ describe('User API', function(){
       var users = [];
       users.push(user1);
       users.push(user2);
-      var User = mongoose.model('User');
-      User.create(users, function(err, users){
-        done();
+
+ var User = mongoose.model('User');
+//       User.collection.insert(users, function(err, users){
+//         console.log(users);
+//         done();
+//       });
+      User.create(users[1], function(err, user){
+        users[0].followers = [user._id];
+        User.create(users[0], function(err, user){
+          done();
+        });
       });
     });
     it ('should return the list of users excluding her/himself', function(done){
       getUserToken({username:'cobianwae', password:'hagemaru6414'})
       .then(function(token){
-        request.get('/users')
+        request.get('/users?fullname=cobi')
         .set('Authorization', 'Bearer ' + token)
         .expect(200)
         .end(function(err, res){
+          console.log(err);
+          console.log(res);
           res.body.length.should.equal(1);
           done();
         });
