@@ -54,6 +54,7 @@ exports.getById = function(req, res, next){
     userDTO.about = user.about;
     userDTO.email = user.email;
     userDTO.phoneNumber = user.phoneNumber;
+    userDTO.interests = user.interests;
     var userPost = Post.aggregate([
       {$match : { author : user._id }},
       {$group : {
