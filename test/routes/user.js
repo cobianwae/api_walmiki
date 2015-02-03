@@ -86,7 +86,6 @@ describe('User API', function(){
                   res.body.should.have.property('message');
                   res.body.success.should.equal(false);
                   res.body.field.should.equal('username');
-                  console.log(res.body.message);
                   done();
                 })
               });
@@ -117,7 +116,6 @@ describe('User API', function(){
                   res.body.should.have.property('message');
                   res.body.success.should.equal(false);
                   res.body.field.should.equal('email');
-                  console.log(res.body.message);
                   done();
                 })
               });
@@ -239,10 +237,6 @@ describe('User API', function(){
       users.push(user2);
 
  var User = mongoose.model('User');
-//       User.collection.insert(users, function(err, users){
-//         console.log(users);
-//         done();
-//       });
       User.create(users[1], function(err, user){
         users[0].followers = [user._id];
         User.create(users[0], function(err, user){
@@ -257,8 +251,6 @@ describe('User API', function(){
         .set('Authorization', 'Bearer ' + token)
         .expect(200)
         .end(function(err, res){
-          console.log(err);
-          console.log(res);
           res.body.length.should.equal(1);
           done();
         });
@@ -286,7 +278,7 @@ describe('User API', function(){
             res.body.should.have.property('message');
             done();
           });
-        });        
+        });
       });
     });
   });
@@ -311,11 +303,11 @@ describe('User API', function(){
             res.body.should.have.property('message');
             done();
           });
-        });        
+        });
       });
     });
   });
-  
+
   it('should return 200 status if user success change their password and he should be able to login again', function(done){
     var User = mongoose.model('User');
     var newUser = new User();
@@ -339,11 +331,11 @@ describe('User API', function(){
               res.body.should.have.property('token');
               res.body.success.should.equal(true);
               done();
-            });          
+            });
           });
-      });        
+      });
     });
   });
-  
+
 
 });
