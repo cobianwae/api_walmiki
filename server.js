@@ -65,5 +65,5 @@ router.route('/timeline').get(timeline.getTimeline);
 
 app.use('/api', router);
 app.listen(serverPort, serverIPAddress, function(){
-console.log("Listening on " + serverIPAddress + ", server_port " + serverPort);
+  console.log("Listening on " + serverIPAddress + ", server_port " + serverPort);
 });
