@@ -50,7 +50,7 @@ exports.getById = function(req, res, next){
     userDTO.isSelf = req.params.id === req.user.id;
     userDTO.areYouFollowHim = user.followers.indexOf(req.user.id) != -1;
     userDTO.isYourFollower = user.following.indexOf(req.user.id) != -1;
-    userDTO.cover = 'http://localhost:9090/api/images/54ae67fece094c542d926c59';
+    userDTO.cover = user.cover;
     userDTO.about = user.about;
     userDTO.email = user.email;
     userDTO.phoneNumber = user.phoneNumber;
