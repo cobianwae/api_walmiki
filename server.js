@@ -35,6 +35,7 @@ app.use('/api', allows(expressJwt({secret : 'lookats-05112014162539'}),[
   router.route('/users').get(user.getUsers);
   router.route('/changePassword').put(user.changePassword);
 
+  router.route('/top/users').get(user.getTopUsers);
   router.route('/recommended/users').get(user.getRecommendedUsers);
   router.route('/follow/users/:id').put(user.doFollow);
   router.route('/unfollow/users/:id').put(user.doUnfollow);

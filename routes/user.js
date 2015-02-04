@@ -191,10 +191,12 @@ exports.doFollow = function(req, res, next){
       if(user.following.indexOf(targetUser._id) !== -1)
         return res.status(201).send({success:false, message:'You have followed ' + targetUser.username });
       user.following.push(targetUser._id);
+      user.followingNumber += 1;
       user.save(function(err, user) {
         if(err)
           return next(err);
         targetUser.followers.push(user._id);
+        targetUser.followersNumber +=1;
         targetUser.save(function (err, targetUser) {
           if(err)
             return next(err);
@@ -218,12 +220,14 @@ exports.doUnfollow = function(req, res, next) {
       var index = user.following.indexOf(targetUser._id);
       if(index > -1) {
         user.following.splice(index, 1);
+        user.followingNumber -= 1;
         user.save(function(err, user) {
           if(err)
             return next(err);
           var index = targetUser.followers.indexOf(user._id);
           if(index > -1) {
             targetUser.followers.splice(index, 1);
+            targetUser.followersNumber -= 1;
             targetUser.save(function (err, targetUser) {
               if(err)
                 return next(err);
@@ -279,6 +283,20 @@ exports.getRecommendedUsers = function(req, res,next){
     });
   });
 };
+
+exports.getTopUsers = function(req, res, next){
+  var page = req.query.page ? req.query.page : 1;
+  var skip = (page - 1) * 10;
+  User.find({$and : [{_id : {$ne : req.user.id}}, {type:'member'}]})
+  .sort({followersNumber:-1})
+  .skip(skip)
+  .limit(10)
+  .exec(function(err, users){
+    if(err)
+      return next(err);
+    res.send(users);
+  });
+}
 
 exports.changePassword = function(req, res, next) {
   User.findById(req.user.id, function(err, user){
